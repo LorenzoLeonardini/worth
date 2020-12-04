@@ -58,7 +58,7 @@ public class UsersPanel extends JPanel {
 		reload();
 	}
 	
-	private void reload() {
+	public void reload() {
 		int y = 20;
 		for(UsersPanelElement e : online_users.values()) {
 			e.setBounds(0, y, 150, PropicManager.SIZE);

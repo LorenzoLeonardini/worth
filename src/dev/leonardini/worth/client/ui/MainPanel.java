@@ -9,7 +9,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.ui.assets.AssetsManager;
@@ -23,7 +22,6 @@ public class MainPanel extends JPanel {
 	private JLabel title;
 	private JLabel propic;
 	private JLabel settings;
-	private JSeparator separator;
 	
 	public MainPanel(String username) {
 		setLayout(null);
@@ -64,7 +62,6 @@ public class MainPanel extends JPanel {
 	
 	public void update() {
 		int width = getWidth();
-		int height = getHeight();
 		settings.setBounds(width - PropicManager.SIZE - 10, 10, PropicManager.SIZE, PropicManager.SIZE);
 		propic.setBounds(width - PropicManager.SIZE - 10 - PropicManager.SIZE - 10, 10, PropicManager.SIZE, PropicManager.SIZE);
 		usernameLabel.setBounds(width - PropicManager.SIZE * 2 - 300 - 30, 10, 300, PropicManager.SIZE);

@@ -70,6 +70,11 @@ public class ChatPanel extends JPanel {
 		addMessage("paolo", "Prova 12345677");
 		addMessage("asdasd", "Ascolta le :Papille Gustative");
 		addMessage("pianka", "<3");
+		systemMessage("System message");
+		addMessage("pianka", "<3");
+		addMessage("pianka", "<3");
+		addMessage("pianka", "<3");
+		addMessage("pianka", "<3");
 	}
 	
 	public void addMessage(String username, String message) {
@@ -78,6 +83,15 @@ public class ChatPanel extends JPanel {
 		boolean me = username.equalsIgnoreCase(my_username);
 		
 		ChatMessage new_message = new ChatMessage(username, message, icon, me);
+		appendMessage(new_message, icon);
+	}
+	
+	public void systemMessage(String message) {
+		ChatMessage new_message = new ChatMessage(message);
+		appendMessage(new_message, true);
+	}
+	
+	private void appendMessage(ChatMessage new_message, boolean icon) {
 		if(lastAdded == null)
 			messagesLayout.putConstraint(SpringLayout.NORTH, new_message, 5, SpringLayout.NORTH, messages);
 		else
@@ -101,6 +115,7 @@ public class ChatPanel extends JPanel {
 		private static final long serialVersionUID = -8733742095087484567L;
 		public String username;
 		private boolean icon;
+		private boolean system = false;
 		
 		private JLabel text;
 		
@@ -115,7 +130,7 @@ public class ChatPanel extends JPanel {
 			if(icon) {
 				height = 10;
 				JLabel propic = PropicManager.get(username);
-				propic.setBounds(mine ? MainScreen.CHAT_SIZE - PropicManager.SIZE - 30 : 0, height, PropicManager.SIZE, PropicManager.SIZE);
+				propic.setBounds(mine ? MainScreen.CHAT_SIZE - PropicManager.SIZE - 27 : 0, height, PropicManager.SIZE, PropicManager.SIZE);
 				
 				JLabel usernameLabel = new JLabel(username);
 				usernameLabel.setFont(FontUtils.CHAT_USER_FONT);
@@ -123,7 +138,7 @@ public class ChatPanel extends JPanel {
 				if(mine) {
 					usernameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 				}
-				usernameLabel.setBounds(mine ? MainScreen.CHAT_SIZE - PropicManager.SIZE - 35 - 150 : PropicManager.SIZE + 5, height, 150, PropicManager.SIZE);
+				usernameLabel.setBounds(mine ? MainScreen.CHAT_SIZE - PropicManager.SIZE - 32 - 150 : PropicManager.SIZE + 5, height, 150, PropicManager.SIZE);
 				
 				add(propic);
 				add(usernameLabel);
@@ -133,7 +148,7 @@ public class ChatPanel extends JPanel {
 	        text = new JLabel("<html><body style='background: white; padding: 8px; width: " + (MainScreen.CHAT_SIZE * 0.55) + "px'>" + message + "</body></html>");
 	        
         	Dimension size = text.getPreferredSize();
-        	text.setBounds(mine ? MainScreen.CHAT_SIZE - size.width - 30 : 0, height, size.width, size.height);
+        	text.setBounds(mine ? MainScreen.CHAT_SIZE - size.width - 27 : 0, height, size.width, size.height);
 	        height += text.getHeight();
 	        text.setBorder(BorderFactory.createMatteBorder(icon ? 1 : 0, 1, 1, 1, Color.gray));
 	        text.setOpaque(true);
@@ -144,7 +159,28 @@ public class ChatPanel extends JPanel {
 	        setPreferredSize(new Dimension(text.getWidth(), height));
 		}
 		
+		public ChatMessage(String message) {
+			message = message.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+			this.username = "";
+			system = true;
+			
+			setLayout(null);
+			
+			int height = 0;
+			
+	        text = new JLabel("<html><body style='padding: 8px; text-align: center; width: " + (MainScreen.CHAT_SIZE * 0.5) + "px'>" + message + "</body></html>");
+	        
+        	Dimension size = text.getPreferredSize();
+        	text.setBounds(35, height, size.width, size.height);
+	        height += text.getHeight();
+	        text.setFont(FontUtils.CHAT_SYSTEM_FONT);
+	        add(text);
+	        
+	        setPreferredSize(new Dimension(text.getWidth(), height));
+		}
+		
 		public void removeBottomBorder() {
+			if(system) return;
 			text.setBorder(BorderFactory.createMatteBorder(icon ? 1 : 0, 1, 0, 1, Color.gray));
 		}
 		

@@ -1,6 +1,5 @@
 package dev.leonardini.worth.client.ui;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -38,7 +37,7 @@ public class MainScreen extends JFrame {
         getContentPane().add(separator, gbc_separator);
 	}
 
-	public MainScreen() {
+	public MainScreen(String username) {
 		this.setSize(1100, 630);
 		this.setLocationRelativeTo(null);
 		this.setTitle("WORkTogetHer");
@@ -61,8 +60,8 @@ public class MainScreen extends JFrame {
 		scrollableUsers.setBorder(BorderFactory.createEmptyBorder());
 		scrollableUsers.getVerticalScrollBar().setUnitIncrement(12);
 		scrollableUsers.setPreferredSize(new Dimension(USER_LIST_SIZE, 10));
-		JPanel centralPanel = new MainPanel("pianka");
-		JPanel chatPanel = new ChatPanel("pianka");
+		JPanel centralPanel = new MainPanel(username);
+		JPanel chatPanel = new ChatPanel(username);
 		chatPanel.setPreferredSize(new Dimension(CHAT_SIZE, 10));
 		
 		mainPanel.add(scrollableUsers,  new GridBagConstraints(0, 0, 1, 1, 0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
