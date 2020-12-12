@@ -16,8 +16,8 @@ import dev.leonardini.worth.client.ui.assets.PropicManager;
 
 public class ChatPanel extends JPanel {
 
-	private static final long serialVersionUID = -8597017979489297098L;
-	
+	private static final long serialVersionUID = 1317326421983834032L;
+
 	private JLabel title;
 	private JScrollPane scrollable;
 	private JPanel messages;

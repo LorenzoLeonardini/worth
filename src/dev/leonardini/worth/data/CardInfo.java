@@ -1,0 +1,17 @@
+package dev.leonardini.worth.data;
+
+import dev.leonardini.worth.data.Project.CardLocation;
+
+public class CardInfo {
+
+	public final String name;
+	public final String description;
+	public final CardLocation list;
+	
+	public CardInfo(String name, String description, CardLocation list) {
+		this.name = name;
+		this.description = description;
+		this.list = list;
+	}
+	
+}

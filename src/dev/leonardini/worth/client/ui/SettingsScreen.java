@@ -1,24 +1,33 @@
 package dev.leonardini.worth.client.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+
 import javax.swing.JButton;
-import javax.swing.JFrame;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
-public class SettingsScreen extends JFrame {
+import dev.leonardini.worth.client.ClientAPI;
 
-	private static final long serialVersionUID = 1184624931400285351L;
+public class SettingsScreen extends JDialog {
 
-	public SettingsScreen() {
+	private static final long serialVersionUID = 6378209988325009361L;
+
+	private ClientAPI serverConnection;
+
+	public SettingsScreen(ClientAPI serverConnection) {
+		this.serverConnection = serverConnection;
 		setSize(300, 310);
 		setLocationRelativeTo(null);
 		setResizable(false);
+		setTitle("Impostazioni");
 		JPanel panel = (JPanel) getContentPane();
 		panel.setLayout(null);
 		
@@ -44,17 +53,32 @@ public class SettingsScreen extends JFrame {
 		
 		JTextField email = new JTextField();
 		email.setBounds(30, 130, 240, 30);
+		email.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				if(e.getKeyChar() == KeyEvent.VK_ENTER) {
+					updatePic(email.getText());
+				}
+			}
+		});
 		getContentPane().add(email);
 		
 		JButton save = new JButton("Salva");
-		save.addMouseListener(new MouseAdapter() {
+		save.addActionListener(new ActionListener() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
-				dispose();
+			public void actionPerformed(ActionEvent e) {
+				updatePic(email.getText());
 			}
 		});
 		save.setBounds(100, 180, 100, 30);
 		getContentPane().add(save);
+	}
+	
+	private void updatePic(String email) {
+		new Thread(() -> {
+			dispose();
+			serverConnection.updateProfilePicture(email);
+		}).start();
 	}
 	
 }

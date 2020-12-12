@@ -15,8 +15,8 @@ import dev.leonardini.worth.client.ui.assets.AssetsManager;
 
 public class LoadingPanel extends JPanel {
 
-	private static final long serialVersionUID = -893715229644285470L;
-	
+	private static final long serialVersionUID = -6294564042217993485L;
+
 	public LoadingPanel() {
 		super.setLayout(new GridLayout(1, 1));
 		try {

@@ -8,11 +8,21 @@ public class NetworkUtils {
 	public static final int SERVER_PORT = 4000;
 	public static final int REGISTRY_PORT = 4001;
 	public static final String USER_REGISTRATION = "REGISTRATION-SERVICE";
+	public static final String USER_STATUS_NOTIFICATION = "NOTIFICATION-SERVICE";
 	
-	private static final byte END_CODE[] = { 0, 0, 0, 1, 1, 2, 3, 5, 8, 0, 0, 0 };
+	protected static final byte END_CODE[] = { 0, 0, 0, 1, 1, 2, 3, 5, 8, 0, 0, 0 };
 	
 	public enum Operation {
 		LOGIN,
+		CHANGE_PROPIC,
+		CREATE_PROJECT,
+		LIST_PROJECTS,
+		SHOW_MEMBERS,
+		ADD_MEMBER,
+		SHOW_CARDS,
+		SHOW_CARD,
+		ADD_CARD,
+		MOVE_CARD,
 		LOGOUT
 	}
 	

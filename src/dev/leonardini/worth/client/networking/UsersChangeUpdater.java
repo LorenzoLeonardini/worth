@@ -2,30 +2,30 @@ package dev.leonardini.worth.client.networking;
 
 import java.rmi.RemoteException;
 import java.rmi.server.RemoteObject;
-import java.util.List;
 
-import dev.leonardini.worth.client.ui.UsersPanel;
+import dev.leonardini.worth.client.UserUpdateCallback;
+import dev.leonardini.worth.client.ui.assets.PropicManager;
 import dev.leonardini.worth.networking.UsersChangeNotification;
 
 public class UsersChangeUpdater extends RemoteObject implements UsersChangeNotification {
 
 	private static final long serialVersionUID = 7029744550636542835L;
-	private final UsersPanel panel;
+	private final UserUpdateCallback callback;
 	
-	public UsersChangeUpdater(UsersPanel panel) throws RemoteException {
+	public UsersChangeUpdater(UserUpdateCallback callback) {
 		super();
-		this.panel = panel;
+		this.callback = callback;
 	}
 	
 	@Override
-	public void notifyChange(List<String> online_users, List<String> offline_users) throws RemoteException {
-		for(String s : online_users) {
-			panel.setOnline(s);
-		}
-		for(String s : offline_users) {
-			panel.setOffline(s);
-		}
-		panel.reload();
+	public void notifyChange(String username, boolean status) throws RemoteException {
+		callback.updateUserStatus(username, status);
+	}
+
+	@Override
+	public void notifyPropicChange(String username, String hash) throws RemoteException {
+		PropicManager.addPropic(username, hash);
+		callback.updateUserPropic(username);
 	}
 
 }

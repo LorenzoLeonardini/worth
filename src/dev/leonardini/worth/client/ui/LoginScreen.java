@@ -2,10 +2,10 @@ package dev.leonardini.worth.client.ui;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -15,18 +15,15 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 
-import dev.leonardini.worth.client.ServerConnection;
+import dev.leonardini.worth.client.ClientAPI;
 
 public class LoginScreen extends JFrame {
 	
-	private static final long serialVersionUID = 1613627539419806782L;
-	
-	private ServerConnection serverConnection;
+	private static final long serialVersionUID = -3152910977074804913L;
+
+	private ClientAPI serverConnection;
 	
 	private JPanel mainPanel;
 	private JPanel loadingPanel;
@@ -41,28 +38,25 @@ public class LoginScreen extends JFrame {
 	
 	private void switchToMain() {
 		this.setContentPane(mainPanel);
-		SwingUtilities.updateComponentTreeUI(this);
+		invalidate();
+		validate();
+		repaint();
 	}
 	
 	private void switchToLoading() {
 		this.setContentPane(loadingPanel);
-		SwingUtilities.updateComponentTreeUI(this);
+		invalidate();
+		validate();
+		repaint();
 	}
 	
-	public LoginScreen(ServerConnection serverConnection) {
+	public LoginScreen(ClientAPI serverConnection) {
 		this.serverConnection = serverConnection;
 		this.setSize(320, 455);
 		this.setLocationRelativeTo(null);
 		this.setTitle("WORkTogetHer - Login");
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setResizable(false);
-		
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
 		
 		loadingPanel = new LoadingPanel();
 		
@@ -122,9 +116,9 @@ public class LoginScreen extends JFrame {
 		mainPanel.add(message);
 		
 		JButton login = new JButton("Accedi");
-		login.addMouseListener(new MouseAdapter() {
+		login.addActionListener(new ActionListener() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				login();
 			}
 		});
@@ -138,9 +132,9 @@ public class LoginScreen extends JFrame {
 		mainPanel.add(oppure);
 		
 		JButton signup = new JButton("Registrati");
-		signup.addMouseListener(new MouseAdapter() {
+		signup.addActionListener(new ActionListener() {
 			@Override
-			public void mouseClicked(MouseEvent e) {
+			public void actionPerformed(ActionEvent e) {
 				register();
 			}
 		});
@@ -172,7 +166,7 @@ public class LoginScreen extends JFrame {
 		load(() -> {
 			serverConnection.estabilish(server.getText());
 			if (serverConnection.login(username.getText(), new String(password.getPassword()))) {
-				MainScreen ms = new MainScreen(username.getText());
+				MainScreen ms = new MainScreen(username.getText(), serverConnection);
 				ms.setVisible(true);
 				dispose();
 			} else {

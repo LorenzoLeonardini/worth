@@ -6,24 +6,34 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import javax.swing.JFrame;
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
+import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.ui.assets.AssetsManager;
 import dev.leonardini.worth.client.ui.assets.PropicManager;
 
 public class MainPanel extends JPanel {
 
-	private static final long serialVersionUID = 7674340927335094457L;
+	private static final long serialVersionUID = 1131461282211603252L;
 
 	private JLabel usernameLabel;
 	private JLabel title;
 	private JLabel propic;
 	private JLabel settings;
+	private JScrollPane projectList;
+	private JPanel projectListPanel;
 	
-	public MainPanel(String username) {
+	private ClientAPI clientApi;
+	private MainScreen mainScreen;
+	
+	public MainPanel(String username, ClientAPI clientApi, MainScreen mainScreen) {
+		this.clientApi = clientApi;
+		this.mainScreen = mainScreen;
 		setLayout(null);
 		
 		title = new JLabel("WORkTogetHer");
@@ -41,16 +51,24 @@ public class MainPanel extends JPanel {
 		settings.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				JFrame f = new SettingsScreen();
+				JDialog f = new SettingsScreen(clientApi);
 				f.setVisible(true);
 			}
 		});
 		settings.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		
+		projectListPanel = new ProjectListPanel(this, clientApi);
+		projectList = new JScrollPane();
+		projectList.setViewportView(projectListPanel);
+		projectList.setAutoscrolls(true);
+		projectList.setBorder(BorderFactory.createEmptyBorder());
+		projectList.getVerticalScrollBar().setUnitIncrement(12);
+		
 		add(title);
 		add(usernameLabel);
 		add(propic);
 		add(settings);
+		add(projectList);
 		
 		addComponentListener(new ComponentAdapter() {
 			@Override
@@ -62,9 +80,22 @@ public class MainPanel extends JPanel {
 	
 	public void update() {
 		int width = getWidth();
+		int height = getHeight();
 		settings.setBounds(width - PropicManager.SIZE - 10, 10, PropicManager.SIZE, PropicManager.SIZE);
 		propic.setBounds(width - PropicManager.SIZE - 10 - PropicManager.SIZE - 10, 10, PropicManager.SIZE, PropicManager.SIZE);
 		usernameLabel.setBounds(width - PropicManager.SIZE * 2 - 300 - 30, 10, 300, PropicManager.SIZE);
 		title.setBounds(20, 10, 500, PropicManager.SIZE);
+		projectList.setBounds(0, 20 + PropicManager.SIZE, width, height - PropicManager.SIZE - 20);
+		updateUI();
+	}
+	
+	protected void openProject(String projectName) {
+		projectList.setViewportView(new ProjectPanel(clientApi, projectName, this));
+		mainScreen.openChat(projectName);
+	}
+
+	public void backToProjectList() {
+		projectList.setViewportView(projectListPanel);
+		mainScreen.closeChat();
 	}
 }

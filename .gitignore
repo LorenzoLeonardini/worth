@@ -40,3 +40,9 @@ miglayout*
 
 # not my image
 src/dev/leonardini/worth/client/ui/assets/cog.png
+
+# WORTH
+logs.txt
+projects/
+projectdb
+users.wdb

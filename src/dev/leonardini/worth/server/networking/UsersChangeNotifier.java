@@ -30,9 +30,15 @@ public class UsersChangeNotifier extends RemoteObject implements NotifyUsersChan
 		clients.remove(callback);
 	}
 	
-	public void updateClients(List<String> online_users, List<String> offline_users) throws RemoteException {
+	public void updateClients(String username, boolean status) throws RemoteException {
 		for(UsersChangeNotification c : clients) {
-			c.notifyChange(online_users, offline_users);
+			c.notifyChange(username, status);
+		}
+	}
+	
+	public void updatePropic(String username, String hash) throws RemoteException {
+		for(UsersChangeNotification c : clients) {
+			c.notifyPropicChange(username, hash);
 		}
 	}
 	

@@ -9,14 +9,15 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import dev.leonardini.worth.client.UserUpdateCallback;
 import dev.leonardini.worth.client.ui.assets.PropicManager;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-public class UsersPanel extends JPanel {
+public class UsersPanel extends JPanel implements UserUpdateCallback {
 
-	private static final long serialVersionUID = -2568054359984653653L;
-	
+	private static final long serialVersionUID = -2888416411224027971L;
+
 	private Map<String, UsersPanelElement> offline_users = new HashMap<String, UsersPanelElement>();
 	private Map<String, UsersPanelElement> online_users = new HashMap<String, UsersPanelElement>();
 	
@@ -45,17 +46,6 @@ public class UsersPanel extends JPanel {
 		onlineLabel.setBounds(0, 0, 150, 20);
 		onlineLabel.setVerticalAlignment(SwingConstants.CENTER);
 		add(onlineLabel);
-		
-		for(int i = 0; i < 20; i++) {
-			setOffline("" + i);
-		}
-		setOnline("pianka");
-		setOnline("pippo");
-		setOnline("pluto");
-		setOffline("paperino");
-		setOffline("minnie");
-		
-		reload();
 	}
 	
 	public void reload() {
@@ -86,6 +76,16 @@ public class UsersPanel extends JPanel {
 		updateStructure(username, offline_users, online_users);
 	}
 	
+	public void setUsers(Map<String, Boolean> users) {
+		for (String u : users.keySet()) {
+			if(users.get(u))
+				setOnline(u);
+			else
+				setOffline(u);
+		}
+		reload();
+	}
+	
 	private void updateStructure(String username, Map<String, UsersPanelElement> from, Map<String, UsersPanelElement> to) {
 		if(to.containsKey(username)) return;
 		UsersPanelElement view;
@@ -98,23 +98,24 @@ public class UsersPanel extends JPanel {
 		}
 		to.put(username, view);
 	}
-	
-	class UsersPanelElement extends JPanel {
 
-		private static final long serialVersionUID = -1634521492568386834L;
+	@Override
+	public void updateUserStatus(String username, boolean status) {
+		if(status)
+			setOnline(username);
+		else
+			setOffline(username);
+		reload();
+	}
 
-		public UsersPanelElement(String username) {
-			setLayout(null);
-			JLabel propic = PropicManager.get(username);
-			propic.setBounds(0, 0, PropicManager.SIZE, PropicManager.SIZE);
-			JLabel name = new JLabel(username);
-			name.setBounds(PropicManager.SIZE + 5, 0, 100, PropicManager.SIZE);
-			name.setFont(FontUtils.USER_PANEL_FONT);
-			name.setVerticalAlignment(SwingConstants.CENTER);
-			add(propic);
-			add(name);
-		}
-		
+	@Override
+	public void updateUserPropic(String username) {
+		UsersPanelElement panel = online_users.get(username);
+		if(panel == null)
+			panel = offline_users.get(username);
+		if(panel == null) return;
+		panel.updatePic();
+		reload();
 	}
 	
 }

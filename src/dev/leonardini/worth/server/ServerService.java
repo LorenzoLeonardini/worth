@@ -56,7 +56,7 @@ public class ServerService {
 		
 	}
 	
-	public void moveCard(String project, String card, Project.Location src, Project.Location dest) {
+	public void moveCard(String project, String card, Project.CardLocation src, Project.CardLocation dest) {
 		
 	}
 	
