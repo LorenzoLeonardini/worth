@@ -16,6 +16,7 @@ public class Project implements Serializable {
 	private static final long serialVersionUID = -4418794667789728106L;
 	
 	private String name;
+	private boolean deleted = false;
 	private Set<String> members;
 	private Map<String, Card> todo;
 	private Map<String, Card> in_progress;
@@ -40,6 +41,7 @@ public class Project implements Serializable {
 	@SuppressWarnings("unchecked")
 	private void writeObject(ObjectOutputStream oos) throws IOException {
 		oos.writeObject(name);
+		oos.writeBoolean(deleted);
 		oos.writeObject(members);
 		List<String> cards[] = new List[4];
 		for(CardLocation l : CardLocation.values()) {
@@ -55,6 +57,7 @@ public class Project implements Serializable {
 	@SuppressWarnings("unchecked")
 	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 		this.name = (String) ois.readObject();
+		this.deleted = ois.readBoolean();
 		this.members = (Set<String>) ois.readObject();
 		this.todo = new HashMap<String, Card>();
 		this.in_progress = new HashMap<String, Card>();
@@ -122,6 +125,16 @@ public class Project implements Serializable {
 		return name;
 	}
 	
+	public boolean isDeleted() {
+		return deleted;
+	}
+	
+	public void delete() throws ProjectUndeletableException {
+		if(todo.size() > 0 || in_progress.size() > 0 || to_be_revised.size() > 0)
+			throw new ProjectUndeletableException("Tutte le card devono essere nella lista 'done'");
+		deleted = true;
+	}
+	
 	public List<String> getMembers() {
 		return new ArrayList<String>(members);
 	}
@@ -186,6 +199,13 @@ public class Project implements Serializable {
 	public static class InvalidCardMovementException extends Exception {
 		private static final long serialVersionUID = 3226045727166174031L;
 		public InvalidCardMovementException(String message) {
+			super(message);
+		}
+	}
+	
+	public static class ProjectUndeletableException extends Exception {
+		private static final long serialVersionUID = 3226045727166174031L;
+		public ProjectUndeletableException(String message) {
 			super(message);
 		}
 	}

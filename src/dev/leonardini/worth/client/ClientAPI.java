@@ -331,6 +331,25 @@ public class ClientAPI {
 		return false;
 	}
 	
+	public boolean cancelProject(String projectName, String password) {
+		if(socketChannel == null) {
+			message_info = "Nessuna connessione";
+			return false;
+		}
+		
+		ServerCommunication comm = new ServerCommunication(Operation.DELETE_PROJECT, socketChannel);
+		WorthBuffer buffer = comm.getBuffer();
+		buffer.putString(projectName);
+		buffer.putString(password);
+
+		if(comm.send()) {
+			return true;
+		}
+		message_info = comm.getErrorMessage();
+		System.out.println(message_info);
+		return false;
+	}
+	
 	public String getMessage() {
 		return message_info;
 	}

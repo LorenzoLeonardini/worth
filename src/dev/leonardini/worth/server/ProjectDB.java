@@ -16,6 +16,7 @@ import dev.leonardini.worth.data.Project;
 import dev.leonardini.worth.data.Project.CardLocation;
 import dev.leonardini.worth.data.Project.InvalidCardException;
 import dev.leonardini.worth.data.Project.InvalidCardMovementException;
+import dev.leonardini.worth.data.Project.ProjectUndeletableException;
 
 public class ProjectDB {
 	
@@ -70,7 +71,7 @@ public class ProjectDB {
 	public static List<Project> listUserProjects(String username) {
 		List<Project> user_projects = new ArrayList<Project>();
 		for(Project p : projects.values()) {
-			if(p.isMember(username))
+			if(!p.isDeleted() && p.isMember(username))
 				user_projects.add(p);
 		}
 		return user_projects;
@@ -115,6 +116,13 @@ public class ProjectDB {
 		Project p = projects.get(Card.toFileName(projectName));
 		if(p == null) return false;
 		p.moveCard(cardName, src, dst, username);
+		return true;
+	}
+
+	public static boolean deleteProject(String projectName, String username) throws ProjectUndeletableException {
+		Project p = projects.get(Card.toFileName(projectName));
+		if(p == null) return false;
+		p.delete();
 		return true;
 	}
 	

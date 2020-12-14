@@ -92,11 +92,13 @@ public class ProjectListPanel extends JPanel {
 	public void refresh() {
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		new Thread(() -> {
+			for(JLabel label : projects.values()) {
+				remove(label);
+			}
+			projects.clear();
 			List<String> prs = clientApi.listProjects();
 			for(String p : prs) {
-				if(!projects.containsKey(p)) {
-					addProject(p);
-				}
+				addProject(p);
 			}
 			if(projects.size() > 0)
 				noProjects.setVisible(false);

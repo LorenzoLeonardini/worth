@@ -80,13 +80,19 @@ public class UserManager extends RemoteServer implements UserRegistration {
 			if(user_status.containsKey(username) && user_status.get(username))
 				throw new Exception("Already logged in");
 		}
-		synchronized (users) {
-			response = users.containsKey(username) && users.get(username).checkPassword(password);
-		}
+		response = securityLogin(username, password);
 		if(response) {
 			synchronized(user_status) {
 				updateUserStatus(username, true);
 			}
+		}
+		return response;
+	}
+	
+	public boolean securityLogin(String username, String password) {
+		boolean response;
+		synchronized (users) {
+			response = users.containsKey(username) && users.get(username).checkPassword(password);
 		}
 		return response;
 	}

@@ -30,6 +30,7 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
@@ -66,19 +67,8 @@ public class ProjectPanel extends JPanel {
 		layout.putConstraint(SpringLayout.NORTH, back, 6, SpringLayout.NORTH, this);
 		layout.putConstraint(SpringLayout.WEST, back, 6, SpringLayout.WEST, this);
 		add(back);
-		
-		ProjectPanel _this = this;
-		JButton members = new JButton("Membri");
-		members.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new MembersScreen(project, clientApi).setVisible(true);
-			}
-		});
-		members.setPreferredSize(new Dimension(130, 30));
-		layout.putConstraint(SpringLayout.NORTH, members, 6, SpringLayout.NORTH, this);
-		layout.putConstraint(SpringLayout.WEST, members, -65, SpringLayout.HORIZONTAL_CENTER, this);
-		add(members);
 
+		ProjectPanel _this = this;
 		JButton newCard = new JButton("Nuova card");
 		newCard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -88,8 +78,30 @@ public class ProjectPanel extends JPanel {
 		});
 		newCard.setPreferredSize(new Dimension(130, 30));
 		layout.putConstraint(SpringLayout.NORTH, newCard, 6, SpringLayout.NORTH, this);
-		layout.putConstraint(SpringLayout.EAST, newCard, -6, SpringLayout.EAST, this);
+		layout.putConstraint(SpringLayout.EAST, newCard, -10, SpringLayout.HORIZONTAL_CENTER, this);
 		add(newCard);
+		
+		JButton members = new JButton("Membri");
+		members.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new MembersScreen(project, clientApi).setVisible(true);
+			}
+		});
+		members.setPreferredSize(new Dimension(130, 30));
+		layout.putConstraint(SpringLayout.NORTH, members, 6, SpringLayout.NORTH, this);
+		layout.putConstraint(SpringLayout.WEST, members, 10, SpringLayout.HORIZONTAL_CENTER, this);
+		add(members);
+		
+		JButton delete = new JButton("Elimina");
+		delete.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new DeleteConfirmationScreen(project, clientApi, mainPanel).setVisible(true);
+			}
+		});
+		delete.setPreferredSize(new Dimension(130, 30));
+		layout.putConstraint(SpringLayout.NORTH, delete, 6, SpringLayout.NORTH, this);
+		layout.putConstraint(SpringLayout.EAST, delete, -6, SpringLayout.EAST, this);
+		add(delete);
 		
 		JLabel leftSide = new JLabel();
 		layout.putConstraint(SpringLayout.WEST, leftSide, 6, SpringLayout.WEST, this);
@@ -99,38 +111,42 @@ public class ProjectPanel extends JPanel {
 		layout.putConstraint(SpringLayout.EAST, rightSide, -6, SpringLayout.EAST, this);
 		
 		todoArea = new CardColumn("Todo:", CardLocation.TODO);
-		layout.putConstraint(SpringLayout.NORTH, todoArea, 6, SpringLayout.SOUTH, members);
-		layout.putConstraint(SpringLayout.WEST, todoArea, 6, SpringLayout.WEST, this);
-		layout.putConstraint(SpringLayout.SOUTH, todoArea, -6, SpringLayout.SOUTH, this);
-		layout.putConstraint(SpringLayout.EAST, todoArea, -3, SpringLayout.HORIZONTAL_CENTER, leftSide);
-		add(todoArea);
+		JScrollPane todoScroll = wrapInScrollPane(todoArea);
+		layout.putConstraint(SpringLayout.NORTH, todoScroll, 6, SpringLayout.SOUTH, members);
+		layout.putConstraint(SpringLayout.WEST, todoScroll, 6, SpringLayout.WEST, this);
+		layout.putConstraint(SpringLayout.SOUTH, todoScroll, -6, SpringLayout.SOUTH, this);
+		layout.putConstraint(SpringLayout.EAST, todoScroll, -3, SpringLayout.HORIZONTAL_CENTER, leftSide);
+		add(todoScroll);
 		
 		addSeparator(leftSide);
 		
 		CardColumn inprogressArea = new CardColumn("In progress:", CardLocation.IN_PROGRESS);
-		layout.putConstraint(SpringLayout.NORTH, inprogressArea, 6, SpringLayout.SOUTH, members);
-		layout.putConstraint(SpringLayout.WEST, inprogressArea, 3, SpringLayout.HORIZONTAL_CENTER, leftSide);
-		layout.putConstraint(SpringLayout.SOUTH, inprogressArea, -6, SpringLayout.SOUTH, this);
-		layout.putConstraint(SpringLayout.EAST, inprogressArea, -3, SpringLayout.HORIZONTAL_CENTER, this);
-		add(inprogressArea);
+		JScrollPane inprogressScroll = wrapInScrollPane(inprogressArea);
+		layout.putConstraint(SpringLayout.NORTH, inprogressScroll, 6, SpringLayout.SOUTH, members);
+		layout.putConstraint(SpringLayout.WEST, inprogressScroll, 3, SpringLayout.HORIZONTAL_CENTER, leftSide);
+		layout.putConstraint(SpringLayout.SOUTH, inprogressScroll, -6, SpringLayout.SOUTH, this);
+		layout.putConstraint(SpringLayout.EAST, inprogressScroll, -3, SpringLayout.HORIZONTAL_CENTER, this);
+		add(inprogressScroll);
 		
 		addSeparator(this);
 		
 		CardColumn toberevisedArea = new CardColumn("To be revised:", CardLocation.TO_BE_REVISED);
-		layout.putConstraint(SpringLayout.NORTH, toberevisedArea, 6, SpringLayout.SOUTH, members);
-		layout.putConstraint(SpringLayout.WEST, toberevisedArea, 3, SpringLayout.HORIZONTAL_CENTER, this);
-		layout.putConstraint(SpringLayout.SOUTH, toberevisedArea, -6, SpringLayout.SOUTH, this);
-		layout.putConstraint(SpringLayout.EAST, toberevisedArea, -3, SpringLayout.HORIZONTAL_CENTER, rightSide);
-		add(toberevisedArea);
+		JScrollPane toberevisedScroll = wrapInScrollPane(toberevisedArea);
+		layout.putConstraint(SpringLayout.NORTH, toberevisedScroll, 6, SpringLayout.SOUTH, members);
+		layout.putConstraint(SpringLayout.WEST, toberevisedScroll, 3, SpringLayout.HORIZONTAL_CENTER, this);
+		layout.putConstraint(SpringLayout.SOUTH, toberevisedScroll, -6, SpringLayout.SOUTH, this);
+		layout.putConstraint(SpringLayout.EAST, toberevisedScroll, -3, SpringLayout.HORIZONTAL_CENTER, rightSide);
+		add(toberevisedScroll);
 		
 		addSeparator(rightSide);
 		
 		CardColumn doneArea = new CardColumn("Done:", CardLocation.DONE);
-		layout.putConstraint(SpringLayout.NORTH, doneArea, 6, SpringLayout.SOUTH, members);
-		layout.putConstraint(SpringLayout.WEST, doneArea, 3, SpringLayout.HORIZONTAL_CENTER, rightSide);
-		layout.putConstraint(SpringLayout.SOUTH, doneArea, -6, SpringLayout.SOUTH, this);
-		layout.putConstraint(SpringLayout.EAST, doneArea, -6, SpringLayout.EAST, this);
-		add(doneArea);
+		JScrollPane doneScroll = wrapInScrollPane(doneArea);
+		layout.putConstraint(SpringLayout.NORTH, doneScroll, 6, SpringLayout.SOUTH, members);
+		layout.putConstraint(SpringLayout.WEST, doneScroll, 3, SpringLayout.HORIZONTAL_CENTER, rightSide);
+		layout.putConstraint(SpringLayout.SOUTH, doneScroll, -6, SpringLayout.SOUTH, this);
+		layout.putConstraint(SpringLayout.EAST, doneScroll, -6, SpringLayout.EAST, this);
+		add(doneScroll);
 		
 		List<String> cards = clientApi.showCards(project);
 		for(String card : cards) {
@@ -162,6 +178,15 @@ public class ProjectPanel extends JPanel {
 				updateSize();
 			}
 		});
+	}
+	
+	private JScrollPane wrapInScrollPane(CardColumn column) {
+		JScrollPane scroll = new JScrollPane();
+		scroll.setViewportView(column);
+		scroll.setAutoscrolls(true);
+		scroll.setBorder(BorderFactory.createEmptyBorder());
+		scroll.getVerticalScrollBar().setUnitIncrement(12);
+		return scroll;
 	}
 
 	public void addCard(CardLabel cardLabel) {
@@ -213,13 +238,16 @@ public class ProjectPanel extends JPanel {
 		
 		public void reload() {
 			JLabel prev = titleLabel;
+			int h = 22;
 			for(JLabel card : cards) {
 				layout.putConstraint(SpringLayout.NORTH, card, 6, SpringLayout.SOUTH, prev);
 				layout.putConstraint(SpringLayout.WEST, card, 4, SpringLayout.WEST, this);
 				layout.putConstraint(SpringLayout.SOUTH, card, card.getPreferredSize().height, SpringLayout.NORTH, card);
 				layout.putConstraint(SpringLayout.EAST, card, -4, SpringLayout.EAST, this);
+				h += 14 + card.getPreferredSize().height;
 				prev = card;
 			}
+			setPreferredSize(new Dimension(titleLabel.getPreferredSize().width, h));
 			SwingUtilities.updateComponentTreeUI(this);
 		}
 		

@@ -23,6 +23,7 @@ public class NetworkUtils {
 		SHOW_CARD,
 		ADD_CARD,
 		MOVE_CARD,
+		DELETE_PROJECT,
 		LOGOUT
 	}
 	

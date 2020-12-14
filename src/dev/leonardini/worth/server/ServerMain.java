@@ -213,6 +213,23 @@ public class ServerMain {
 				session.data = new Object[] { projectName, cardName, src, dst };
 				session.outcome = true;
 				break;
+			case DELETE_PROJECT:
+				projectName = session.buffer.getString();
+				password = session.buffer.getString();
+				projectMembers = ProjectDB.getMembers(projectName);
+				if(!projectMembers.contains(session.username)) {
+					session.outcome = false;
+					session.data = "Non fai parte del progetto";
+					break;
+				}
+				if(!userManager.securityLogin(session.username, password)) {
+					session.outcome = false;
+					session.data = "Password errata";
+					break;
+				}
+				session.data = projectName;
+				session.outcome = true;
+				break;
 			default:
 				break;
 		}
@@ -340,6 +357,25 @@ public class ServerMain {
 				String message = "Progetto inesistente";
 				try {
 					outcome = ProjectDB.moveCard(projectName, cardName, src, dst, session.username);
+				}
+				catch (Exception e) {
+					outcome = false;
+					message = e.getMessage();
+				}
+				buffer.putBoolean(session.logged && session.outcome && outcome);
+				if(!session.logged) {
+					buffer.putString("È necessario l'accesso");
+				} else if(!session.outcome) {
+					buffer.putString((String) session.data);
+				} else if(!outcome) {
+					buffer.putString(message);
+				}
+				break;
+			case DELETE_PROJECT:
+				projectName = (String)session.data;
+				message = "Progetto inesistente";
+				try {
+					outcome = ProjectDB.deleteProject(projectName, session.username);
 				}
 				catch (Exception e) {
 					outcome = false;

@@ -96,6 +96,7 @@ public class MainPanel extends JPanel {
 
 	public void backToProjectList() {
 		projectList.setViewportView(projectListPanel);
+		((ProjectListPanel)projectListPanel).refresh();
 		mainScreen.closeChat();
 	}
 }
