@@ -62,7 +62,7 @@ public class Logger {
 	}
 	
 	private static String date() {
-		return new SimpleDateFormat("[dd/mm/yy HH:mm:ss.SSS]").format(new Date());
+		return new SimpleDateFormat("[dd/MM/yy HH:mm:ss.SSS]").format(new Date());
 	}
 	
 	public static void verbose(boolean verbose) {

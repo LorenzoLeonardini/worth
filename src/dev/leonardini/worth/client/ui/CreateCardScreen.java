@@ -103,7 +103,7 @@ public class CreateCardScreen extends JDialog {
 		new Thread(() -> {
 			errorMessage.setVisible(false);
 			if(serverConnection.addCard(projectName, cardName, cardDescription)) {
-				projectPanel.addCard(new CardLabel(cardName, cardDescription));
+				projectPanel.addCard(new CardLabel(projectName, cardName, cardDescription, serverConnection));
 				projectPanel.updateUI();
 				dispose();
 			} else {

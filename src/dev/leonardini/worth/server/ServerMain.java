@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
+import dev.leonardini.worth.data.Card.HistoryEntry;
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project;
 import dev.leonardini.worth.data.Project.CardLocation;
@@ -175,6 +176,7 @@ public class ServerMain {
 				session.outcome = true;
 				break;
 			case SHOW_CARD:
+			case GET_CARD_HISTORY:
 				projectName = session.buffer.getString();
 				String cardName = session.buffer.getString();
 				projectMembers = ProjectDB.getMembers(projectName);
@@ -332,6 +334,26 @@ public class ServerMain {
 				} else {
 					buffer.putString(info.description);
 					buffer.putInt(info.list.ordinal());
+				}
+				break;
+			case GET_CARD_HISTORY:
+				projectName = ((String[]) session.data)[0];
+				cardName = ((String[]) session.data)[1];
+				List<HistoryEntry> history = ProjectDB.getCardHistory(projectName, cardName);
+				buffer.putBoolean(session.logged && session.outcome && (history != null));
+				if(!session.logged) {
+					buffer.putString("È necessario l'accesso");
+				} else if(!session.outcome) {
+					buffer.putString((String) session.data);
+				} else if(history == null) {
+					buffer.putString("Progetto o card inesistente");
+				} else {
+					buffer.putInt(history.size());
+					for(HistoryEntry e : history) {
+						buffer.putLong(e.timestamp);
+						buffer.putString(e.user);
+						buffer.putInt(e.location.ordinal());
+					}
 				}
 				break;
 			case ADD_CARD:

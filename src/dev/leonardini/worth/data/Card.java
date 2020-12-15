@@ -54,13 +54,17 @@ public class Card implements Serializable {
 			out.writeObject(this);
 			out.close();
 			fos.close();
-		}catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public static String toFileName(String name) {
 		return name.toLowerCase().replace(' ', '_');
+	}
+	
+	public List<HistoryEntry> getHistory() {
+		return this.history;
 	}
 	
 	public class HistoryEntry implements Serializable {

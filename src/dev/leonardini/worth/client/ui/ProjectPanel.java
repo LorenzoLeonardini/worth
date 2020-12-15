@@ -155,7 +155,7 @@ public class ProjectPanel extends JPanel {
 				System.err.println(card + ": " + clientApi.getMessage());
 				continue;
 			}
-			CardLabel c = new CardLabel(info.name, info.description);
+			CardLabel c = new CardLabel(projectName, info.name, info.description, clientApi);
 			switch(info.list) {
 				case TODO:
 					todoArea.addCard(c);
@@ -271,7 +271,7 @@ public class ProjectPanel extends JPanel {
 		
 		public final String cardName, description;
 
-		public CardLabel(String cardName, String description) {
+		public CardLabel(String projectName, String cardName, String description, ClientAPI clientApi) {
 			this.cardName = cardName;
 			this.description = description;
 			setText("<html><body style='padding: 8px 4px; width: 100%'><div style='font-size: 1.1em; width: 100%'>" + cardName + "</div><div style='font-weight: normal; margin-top: 4px; font-size: 0.95em; width: 100%'>" + description + "</div></body></html>");
@@ -291,7 +291,16 @@ public class ProjectPanel extends JPanel {
 		        }
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					JOptionPane.showMessageDialog(null, "Eggs are not supposed to be green.");
+					List<String> history = clientApi.getCardHistory(projectName, cardName);
+					if(history == null) {
+						JOptionPane optionPane = new JOptionPane(clientApi.getMessage(), JOptionPane.ERROR_MESSAGE);    
+						JDialog dialog = optionPane.createDialog("Errore");
+						dialog.setAlwaysOnTop(true);
+						dialog.setVisible(true);
+					}
+					else {
+						new CardHistoryScreen(history).setVisible(true);
+					}
 				}
 			});
 			new DragSource().createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, new DragGestureListener() {

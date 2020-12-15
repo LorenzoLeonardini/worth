@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import dev.leonardini.worth.data.Card.HistoryEntry;
+
 public class Project implements Serializable {
 
 	private static final long serialVersionUID = -4418794667789728106L;
@@ -179,6 +181,19 @@ public class Project implements Serializable {
 			return new CardInfo(cardName, to_be_revised.get(fileName).description, CardLocation.TO_BE_REVISED);
 		else if(done.containsKey(fileName))
 			return new CardInfo(cardName, done.get(fileName).description, CardLocation.DONE);
+		return null;
+	}
+	
+	public List<HistoryEntry> getCardHistory(String cardName) {
+		String fileName = Card.toFileName(cardName);
+		if(todo.containsKey(fileName))
+			return todo.get(fileName).getHistory();
+		else if(in_progress.containsKey(fileName))
+			return in_progress.get(fileName).getHistory();
+		else if(to_be_revised.containsKey(fileName))
+			return to_be_revised.get(fileName).getHistory();
+		else if(done.containsKey(fileName))
+			return done.get(fileName).getHistory();
 		return null;
 	}
 	

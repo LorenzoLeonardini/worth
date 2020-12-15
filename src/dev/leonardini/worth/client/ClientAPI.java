@@ -7,7 +7,9 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -400,6 +402,34 @@ public class ClientAPI {
 		message_info = comm.getErrorMessage();
 		System.out.println(message_info);
 		return false;
+	}
+	
+	public List<String> getCardHistory(String projectName, String cardName) {
+		if(socketChannel == null) {
+			message_info = "Nessuna connessione";
+			return null;
+		}
+		
+		ServerCommunication comm = new ServerCommunication(Operation.GET_CARD_HISTORY, socketChannel);
+		WorthBuffer buffer = comm.getBuffer();
+		buffer.putString(projectName);
+		buffer.putString(cardName);
+
+		if(comm.send()) {
+			int length = buffer.getInt();
+			List<String> history = new ArrayList<String>(length);
+			for(int i = 0; i < length; i++) {
+				long timestamp = buffer.getLong();
+				String user = buffer.getString();
+				CardLocation location = CardLocation.values()[buffer.getInt()];
+				String date = new SimpleDateFormat("[dd/MM/yy HH:mm:ss] ").format(new Date(timestamp));
+				history.add(date + user + " ha spostato la card in " + location);
+			}
+			return history;
+		}
+		message_info = comm.getErrorMessage();
+		System.out.println(message_info);
+		return null;
 	}
 	
 }

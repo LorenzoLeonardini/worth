@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import dev.leonardini.worth.data.Card;
+import dev.leonardini.worth.data.Card.HistoryEntry;
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project;
 import dev.leonardini.worth.data.Project.CardLocation;
@@ -98,6 +99,12 @@ public class ProjectDB {
 		Project p = projects.get(Card.toFileName(projectName));
 		if(p == null) return null;
 		return p.getCard(cardName);
+	}
+	
+	public static List<HistoryEntry> getCardHistory(String projectName, String cardName) {
+		Project p = projects.get(Card.toFileName(projectName));
+		if(p == null) return null;
+		return p.getCardHistory(cardName);
 	}
 
 	public static String addCard(String projectName, String cardName, String cardDescription, String user) {
