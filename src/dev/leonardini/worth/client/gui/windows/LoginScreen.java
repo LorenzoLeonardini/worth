@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.windows;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -18,6 +18,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
 import dev.leonardini.worth.client.ClientAPI;
+import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 
 public class LoginScreen extends JFrame {
 	

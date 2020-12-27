@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui.assets;
+package dev.leonardini.worth.client.gui.assets;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;

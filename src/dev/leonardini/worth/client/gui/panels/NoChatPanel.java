@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.panels;
 
 import java.awt.Dimension;
 
@@ -6,6 +6,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
+
+import dev.leonardini.worth.client.gui.assets.FontUtils;
 
 public class NoChatPanel extends JPanel {
 

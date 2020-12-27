@@ -1,10 +1,11 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.components;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import dev.leonardini.worth.client.ui.assets.PropicManager;
+import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.PropicManager;
 
 public class UsersPanelElement extends JPanel {
 

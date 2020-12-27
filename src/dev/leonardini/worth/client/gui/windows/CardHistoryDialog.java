@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.windows;
 
 import java.util.List;
 
@@ -8,12 +8,12 @@ import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-public class CardHistoryScreen extends JDialog {
+public class CardHistoryDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
 
 	@SuppressWarnings("unchecked")
-	public CardHistoryScreen(List<String> history) {
+	public CardHistoryDialog(List<String> history) {
 		setSize(600, 400);
 		setLocationRelativeTo(null);
 		setResizable(false);

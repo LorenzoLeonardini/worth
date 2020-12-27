@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.windows;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,14 +15,15 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
+import dev.leonardini.worth.client.gui.assets.FontUtils;
 
-public class SettingsScreen extends JDialog {
+public class SettingsDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
 
 	private ClientAPI serverConnection;
 
-	public SettingsScreen(ClientAPI serverConnection) {
+	public SettingsDialog(ClientAPI serverConnection) {
 		this.serverConnection = serverConnection;
 		setSize(300, 310);
 		setLocationRelativeTo(null);

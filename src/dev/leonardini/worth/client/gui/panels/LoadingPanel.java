@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.panels;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -11,7 +11,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import dev.leonardini.worth.client.ui.assets.AssetsManager;
+import dev.leonardini.worth.client.gui.assets.AssetsManager;
 
 public class LoadingPanel extends JPanel {
 

@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.assets;
 
 import java.awt.Color;
 import java.awt.Font;

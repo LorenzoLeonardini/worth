@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.panels;
 
 import java.awt.Cursor;
 import java.awt.event.ComponentAdapter;
@@ -14,8 +14,11 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.ui.assets.AssetsManager;
-import dev.leonardini.worth.client.ui.assets.PropicManager;
+import dev.leonardini.worth.client.gui.assets.AssetsManager;
+import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.PropicManager;
+import dev.leonardini.worth.client.gui.windows.MainScreen;
+import dev.leonardini.worth.client.gui.windows.SettingsDialog;
 
 public class MainPanel extends JPanel {
 
@@ -51,7 +54,7 @@ public class MainPanel extends JPanel {
 		settings.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				JDialog f = new SettingsScreen(clientApi);
+				JDialog f = new SettingsDialog(clientApi);
 				f.setVisible(true);
 			}
 		});

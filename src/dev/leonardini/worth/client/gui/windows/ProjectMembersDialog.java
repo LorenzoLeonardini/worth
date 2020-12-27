@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.windows;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,14 +18,15 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.ui.assets.PropicManager;
+import dev.leonardini.worth.client.gui.assets.PropicManager;
+import dev.leonardini.worth.client.gui.components.UsersPanelElement;
+import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 
-public class MembersScreen extends JDialog {
+public class ProjectMembersDialog extends JDialog {
 
 	private static final long serialVersionUID = 1155003498356191669L;
 
@@ -37,7 +38,7 @@ public class MembersScreen extends JDialog {
 	private JLabel errorMessage;
 	private JScrollPane scrollPane;
 
-	public MembersScreen(String projectName, ClientAPI serverConnection) {
+	public ProjectMembersDialog(String projectName, ClientAPI serverConnection) {
 		this.projectName = projectName;
 		this.serverConnection = serverConnection;
 		setSize(220, 400);

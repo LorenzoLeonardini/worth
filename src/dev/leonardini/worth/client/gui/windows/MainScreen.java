@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.windows;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,6 +14,11 @@ import javax.swing.JSeparator;
 import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.ClientAPI;
+import dev.leonardini.worth.client.gui.panels.ChatPanel;
+import dev.leonardini.worth.client.gui.panels.MainPanel;
+import dev.leonardini.worth.client.gui.panels.NoChatPanel;
+import dev.leonardini.worth.client.gui.panels.ProjectPanel;
+import dev.leonardini.worth.client.gui.panels.UsersPanel;
 
 public class MainScreen extends JFrame {
 
@@ -75,7 +80,7 @@ public class MainScreen extends JFrame {
 		this.setVisible(true);
 	}
 	
-	protected void openChat(String projectName, ProjectPanel projectPanel) {
+	public void openChat(String projectName, ProjectPanel projectPanel) {
 		noChat.setVisible(false);
 		currentChat = new ChatPanel(username, projectName, projectPanel, serverConnection);
 		currentChat.setPreferredSize(new Dimension(CHAT_SIZE, 10));
@@ -83,7 +88,7 @@ public class MainScreen extends JFrame {
 		serverConnection.readChat(projectName, currentChat);
 	}
 	
-	protected void closeChat() {
+	public void closeChat() {
 		noChat.setVisible(true);
 		mainPanel.remove(currentChat);
 		serverConnection.exitChat();

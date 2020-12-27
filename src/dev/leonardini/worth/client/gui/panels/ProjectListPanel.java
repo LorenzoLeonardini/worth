@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.panels;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -22,6 +22,8 @@ import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.ClientAPI;
+import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.windows.ProjectCreationDialog;
 
 public class ProjectListPanel extends JPanel {
 	
@@ -55,7 +57,7 @@ public class ProjectListPanel extends JPanel {
 		JButton newProject = new JButton("Nuovo");
 		newProject.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JDialog f = new CreateProjectScreen(clientApi, _this);
+				JDialog f = new ProjectCreationDialog(clientApi, _this);
 				f.setVisible(true);
 			}
 		});

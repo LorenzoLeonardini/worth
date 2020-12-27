@@ -221,6 +221,7 @@ public class ServerMain {
 		handler.addHandler(Operation.SHOW_MEMBERS, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
 			List<String> members = ProjectDB.getMembers(projectName);
+			out.putBoolean(true);
 			out.putInt(members.size());
 			for(String member : members) {
 				out.putString(member);

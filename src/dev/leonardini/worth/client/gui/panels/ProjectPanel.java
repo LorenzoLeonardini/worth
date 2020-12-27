@@ -1,28 +1,12 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.panels;
 
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DragGestureEvent;
-import java.awt.dnd.DragGestureListener;
-import java.awt.dnd.DragSource;
-import java.awt.dnd.DropTarget;
-import java.awt.dnd.DropTargetAdapter;
-import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -35,10 +19,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
-import javax.swing.TransferHandler;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.ui.ProjectPanel.CardLabel;
+import dev.leonardini.worth.client.gui.components.CardColumn;
+import dev.leonardini.worth.client.gui.components.CardLabel;
+import dev.leonardini.worth.client.gui.components.MyDropTargetListener;
+import dev.leonardini.worth.client.gui.windows.CardCreationDialog;
+import dev.leonardini.worth.client.gui.windows.ProjectDeletionDialog;
+import dev.leonardini.worth.client.gui.windows.ProjectMembersDialog;
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project.CardLocation;
 
@@ -48,11 +36,9 @@ public class ProjectPanel extends JPanel {
 
 	private SpringLayout layout;
 	private CardColumn todoArea, inprogressArea, toberevisedArea, doneArea;
-	private ClientAPI clientApi;
 	private String projectName;
 
 	public ProjectPanel(ClientAPI clientApi, String project, MainPanel mainPanel) {
-		this.clientApi = clientApi;
 		this.projectName = project;
 		layout = new SpringLayout();
 		setLayout(layout);
@@ -72,7 +58,7 @@ public class ProjectPanel extends JPanel {
 		JButton newCard = new JButton("Nuova card");
 		newCard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JDialog f = new CreateCardScreen(clientApi, project, _this);
+				JDialog f = new CardCreationDialog(clientApi, project, _this);
 				f.setVisible(true);
 			}
 		});
@@ -84,7 +70,7 @@ public class ProjectPanel extends JPanel {
 		JButton members = new JButton("Membri");
 		members.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new MembersScreen(project, clientApi).setVisible(true);
+				new ProjectMembersDialog(project, clientApi).setVisible(true);
 			}
 		});
 		members.setPreferredSize(new Dimension(130, 30));
@@ -95,7 +81,7 @@ public class ProjectPanel extends JPanel {
 		JButton delete = new JButton("Elimina");
 		delete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new DeleteConfirmationScreen(project, clientApi, mainPanel).setVisible(true);
+				new ProjectDeletionDialog(project, clientApi, mainPanel).setVisible(true);
 			}
 		});
 		delete.setPreferredSize(new Dimension(130, 30));
@@ -111,6 +97,7 @@ public class ProjectPanel extends JPanel {
 		layout.putConstraint(SpringLayout.EAST, rightSide, -6, SpringLayout.EAST, this);
 		
 		todoArea = new CardColumn("Todo:", CardLocation.TODO);
+		new MyDropTargetListener(todoArea, project, clientApi);
 		JScrollPane todoScroll = wrapInScrollPane(todoArea);
 		layout.putConstraint(SpringLayout.NORTH, todoScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, todoScroll, 6, SpringLayout.WEST, this);
@@ -121,6 +108,7 @@ public class ProjectPanel extends JPanel {
 		addSeparator(leftSide);
 		
 		inprogressArea = new CardColumn("In progress:", CardLocation.IN_PROGRESS);
+		new MyDropTargetListener(inprogressArea, project, clientApi);
 		JScrollPane inprogressScroll = wrapInScrollPane(inprogressArea);
 		layout.putConstraint(SpringLayout.NORTH, inprogressScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, inprogressScroll, 3, SpringLayout.HORIZONTAL_CENTER, leftSide);
@@ -131,6 +119,7 @@ public class ProjectPanel extends JPanel {
 		addSeparator(this);
 		
 		toberevisedArea = new CardColumn("To be revised:", CardLocation.TO_BE_REVISED);
+		new MyDropTargetListener(toberevisedArea, project, clientApi);
 		JScrollPane toberevisedScroll = wrapInScrollPane(toberevisedArea);
 		layout.putConstraint(SpringLayout.NORTH, toberevisedScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, toberevisedScroll, 3, SpringLayout.HORIZONTAL_CENTER, this);
@@ -141,6 +130,7 @@ public class ProjectPanel extends JPanel {
 		addSeparator(rightSide);
 		
 		doneArea = new CardColumn("Done:", CardLocation.DONE);
+		new MyDropTargetListener(doneArea, project, clientApi);
 		JScrollPane doneScroll = wrapInScrollPane(doneArea);
 		layout.putConstraint(SpringLayout.NORTH, doneScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, doneScroll, 3, SpringLayout.HORIZONTAL_CENTER, rightSide);
@@ -233,204 +223,4 @@ public class ProjectPanel extends JPanel {
 		return null;
 	}
 	
-	class CardColumn extends JPanel {
-		
-		private static final long serialVersionUID = -2613788183663876833L;
-		
-		private Map<String, CardLabel> cards = new HashMap<String, CardLabel>();
-		private JLabel titleLabel;
-		private SpringLayout layout;
-		public final CardLocation column_location;
-
-		public CardColumn(String title, CardLocation location) {
-			this.column_location = location;
-			layout = new SpringLayout();
-			setLayout(layout);
-			
-			new MyDropTargetListener(this);
-			
-			titleLabel = new JLabel(title);
-			layout.putConstraint(SpringLayout.NORTH, titleLabel, 2, SpringLayout.NORTH, this);
-			layout.putConstraint(SpringLayout.WEST, titleLabel, 2, SpringLayout.WEST, this);
-			layout.putConstraint(SpringLayout.SOUTH, titleLabel, 20, SpringLayout.NORTH, titleLabel);
-			layout.putConstraint(SpringLayout.EAST, titleLabel, -2, SpringLayout.EAST, this);
-			add(titleLabel);
-		}
-		
-		public void reload() {
-			JLabel prev = titleLabel;
-			int h = 22;
-			for(JLabel card : cards.values()) {
-				layout.putConstraint(SpringLayout.NORTH, card, 6, SpringLayout.SOUTH, prev);
-				layout.putConstraint(SpringLayout.WEST, card, 4, SpringLayout.WEST, this);
-				layout.putConstraint(SpringLayout.SOUTH, card, card.getPreferredSize().height, SpringLayout.NORTH, card);
-				layout.putConstraint(SpringLayout.EAST, card, -4, SpringLayout.EAST, this);
-				h += 14 + card.getPreferredSize().height;
-				prev = card;
-			}
-			setPreferredSize(new Dimension(titleLabel.getPreferredSize().width, h));
-			
-			invalidate();
-			validate();
-			repaint();
-		}
-		
-		public void addCard(CardLabel card) {
-			add(card);
-			cards.put(card.cardName, card);
-			reload();
-		}
-		
-		public void removeCard(CardLabel card) {
-			remove(card);
-			cards.remove(card.cardName);
-			reload();
-		}
-		
-		public CardLabel removeCard(String card) throws Exception {
-			if(!cards.containsKey(card)) {
-				throw new Exception("No such card");
-			}
-			CardLabel c = cards.remove(card);
-			remove(c);
-			reload();
-			return c;
-		}
-		
-	}
-	
-	public static class CardLabel extends JLabel implements Serializable {
-
-		private static final long serialVersionUID = 3169641733663285333L;
-		
-		public final String cardName, description;
-
-		public CardLabel(String projectName, String cardName, String description, ClientAPI clientApi) {
-			this.cardName = cardName;
-			this.description = description;
-			setText("<html><body style='padding: 8px 4px; width: 100%'><div style='font-size: 1.1em; width: 100%'>" + cardName + "</div><div style='font-weight: normal; margin-top: 4px; font-size: 0.95em; width: 100%'>" + description + "</div></body></html>");
-			setVerticalAlignment(SwingConstants.CENTER);
-			setHorizontalAlignment(SwingConstants.CENTER);
-			setOpaque(true);
-			setBackground(FontUtils.RANDOM_COLOR());
-			setBorder(BorderFactory.createLineBorder(Color.black));
-			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			setTransferHandler(new TransferHandler("card"));
-			addMouseListener(new MouseAdapter() {
-				@Override
-				public void mousePressed(MouseEvent e) {
-		            var c = (JComponent) e.getSource();
-		            var handler = c.getTransferHandler();
-		            handler.exportAsDrag(c, e, TransferHandler.COPY);
-		        }
-				@Override
-				public void mouseClicked(MouseEvent e) {
-					List<String> history = clientApi.getCardHistory(projectName, cardName);
-					if(history == null) {
-						JOptionPane optionPane = new JOptionPane(clientApi.getMessage(), JOptionPane.ERROR_MESSAGE);    
-						JDialog dialog = optionPane.createDialog("Errore");
-						dialog.setAlwaysOnTop(true);
-						dialog.setVisible(true);
-					}
-					else {
-						new CardHistoryScreen(history).setVisible(true);
-					}
-				}
-			});
-			new DragSource().createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_MOVE, new DragGestureListener() {
-				@Override
-				public void dragGestureRecognized(DragGestureEvent event) {
-					Cursor cursor = Cursor.getDefaultCursor();
-					CardLabel label = (CardLabel) event.getComponent();
-
-					if (event.getDragAction() == DnDConstants.ACTION_MOVE) {
-						cursor = DragSource.DefaultCopyDrop;
-					}
-
-					event.startDrag(cursor, new TransferableCard(label));
-				}
-			});
-		}
-		
-	}
-	
-	private class MyDropTargetListener extends DropTargetAdapter {
-
-		private final CardColumn panel;
-
-		public MyDropTargetListener(CardColumn panel) {
-			this.panel = panel;
-			new DropTarget(panel, DnDConstants.ACTION_MOVE, this, true, null);
-		}
-
-		public void drop(DropTargetDropEvent event) {
-			try {
-				Transferable tr = event.getTransferable();
-				CardLabel card = (CardLabel) tr.getTransferData(TransferableCard.getFlavor());
-
-				if (event.isDataFlavorSupported(TransferableCard.getFlavor())) {
-					event.acceptDrop(DnDConstants.ACTION_MOVE);
-					
-					if(!clientApi.moveCard(projectName, card.cardName, ((CardColumn)card.getParent()).column_location, this.panel.column_location)) {
-						JOptionPane optionPane = new JOptionPane(clientApi.getMessage(), JOptionPane.ERROR_MESSAGE);    
-						JDialog dialog = optionPane.createDialog("Errore");
-						dialog.setAlwaysOnTop(true);
-						dialog.setVisible(true);
-					}
-					
-					event.dropComplete(true);
-					return;
-				}
-
-				event.rejectDrop();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				event.rejectDrop();
-			}
-		}
-	}
-
-}
-
-class TransferableCard implements Transferable {
-	private static DataFlavor cardFlavor;
-	private final CardLabel card;
-	private final String s;
-
-	public TransferableCard(CardLabel card) {
-		this.card = card;
-		this.s = card.getText();
-	}
-	
-	public static DataFlavor getFlavor() {
-		try {
-			if(cardFlavor == null)
-				cardFlavor = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType + ";class=\"" + CardLabel.class.getName() + "\"");
-			return cardFlavor;
-		} catch(Exception e) {
-			return null;
-		}
-	}
-
-	@Override
-	public DataFlavor[] getTransferDataFlavors() {
-		return new DataFlavor[] { TransferableCard.cardFlavor, DataFlavor.stringFlavor };
-	}
-
-	@Override
-	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		return flavor.equals(TransferableCard.cardFlavor) || flavor.equals(DataFlavor.stringFlavor);
-	}
-
-	@Override
-	public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
-		if (flavor.equals(cardFlavor)) {
-			return card;
-		} else if (flavor.equals(DataFlavor.stringFlavor)) {
-			return s;
-		} else {
-			throw new UnsupportedFlavorException(flavor);
-		}
-	}
 }

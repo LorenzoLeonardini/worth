@@ -1,4 +1,4 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.windows;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -17,8 +17,11 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
+import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.panels.LoadingPanel;
+import dev.leonardini.worth.client.gui.panels.MainPanel;
 
-public class DeleteConfirmationScreen extends JDialog {
+public class ProjectDeletionDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
 
@@ -28,7 +31,7 @@ public class DeleteConfirmationScreen extends JDialog {
 	private JLabel errorMessage;
 	private MainPanel mainPanel;
 	
-	public DeleteConfirmationScreen(String projectName, ClientAPI serverConnection, MainPanel mainPanel) {
+	public ProjectDeletionDialog(String projectName, ClientAPI serverConnection, MainPanel mainPanel) {
 		this.serverConnection = serverConnection;
 		this.mainPanel = mainPanel;
 		setSize(300, 310);

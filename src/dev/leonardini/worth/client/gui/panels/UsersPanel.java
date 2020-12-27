@@ -1,18 +1,19 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.panels;
 
 import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
 import dev.leonardini.worth.client.UserUpdateCallback;
-import dev.leonardini.worth.client.ui.assets.PropicManager;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.PropicManager;
+import dev.leonardini.worth.client.gui.components.UsersPanelElement;
 
 public class UsersPanel extends JPanel implements UserUpdateCallback {
 

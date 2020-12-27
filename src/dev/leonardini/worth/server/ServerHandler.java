@@ -15,7 +15,8 @@ public class ServerHandler {
 	private Map<Operation, Integer> requirements = new HashMap<Operation, Integer>();
 	public static final int NONE = 0;
 	public static final int LOGGED = 1;
-	public static final int PROJECT_MEMBER = 3;
+	private static final int MEMBER = 2;
+	public static final int PROJECT_MEMBER = LOGGED | MEMBER;
 	
 	public void addHandler(Operation op, OperationServerHandler handler, int requirements) {
 		handlers.put(op, handler);
@@ -29,14 +30,14 @@ public class ServerHandler {
 		WorthBuffer out = new WorthBuffer();
 		out.putOperation(session.current_operation);
 		
-		if((requirements & LOGGED) == 1) {
+		if((requirements & LOGGED) > 0) {
 			if(!session.logged) {
 				out.putBoolean(false);
 				out.putString("È necessario l'accesso");
 				return out;
 			}
 		}
-		if((requirements & PROJECT_MEMBER) == 1) {
+		if((requirements & MEMBER) > 0) {
 			session.buffer.mark();
 			String projectName = session.buffer.getString();
 			session.buffer.reset();

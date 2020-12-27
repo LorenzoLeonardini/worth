@@ -4,7 +4,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.RemoteObject;
 
 import dev.leonardini.worth.client.UserUpdateCallback;
-import dev.leonardini.worth.client.ui.assets.PropicManager;
+import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.networking.UsersChangeNotification;
 
 public class UsersChangeUpdater extends RemoteObject implements UsersChangeNotification {

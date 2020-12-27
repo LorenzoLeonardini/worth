@@ -1,24 +1,28 @@
-package dev.leonardini.worth.client.ui;
+package dev.leonardini.worth.client.gui.windows;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
+import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.components.CardLabel;
+import dev.leonardini.worth.client.gui.panels.LoadingPanel;
+import dev.leonardini.worth.client.gui.panels.ProjectPanel;
 
-public class CreateProjectScreen extends JDialog {
+public class CardCreationDialog extends JDialog {
 
 	private static final long serialVersionUID = 5676070794513778122L;
 
@@ -27,15 +31,15 @@ public class CreateProjectScreen extends JDialog {
 	private JPanel mainPanel;
 	private JLabel errorMessage;
 	
-	private ProjectListPanel projectList;
+	private ProjectPanel projectPanel;
 
-	public CreateProjectScreen(ClientAPI serverConnection, ProjectListPanel projectList) {
+	public CardCreationDialog(ClientAPI serverConnection, String projectName, ProjectPanel projectPanel) {
 		this.serverConnection = serverConnection;
-		this.projectList = projectList;
-		setSize(300, 310);
+		this.projectPanel = projectPanel;
+		setSize(300, 410);
 		setLocationRelativeTo(null);
 		setResizable(false);
-		setTitle("Crea progetto");
+		setTitle("Crea card");
 		mainPanel = (JPanel) getContentPane();
 		mainPanel.setLayout(null);
 		
@@ -46,33 +50,36 @@ public class CreateProjectScreen extends JDialog {
 			e.printStackTrace();
 		}
 		
-		JLabel createTitle = new JLabel("Crea un nuovo progetto");
+		JLabel createTitle = new JLabel("Crea una nuova card");
 		createTitle.setFont(FontUtils.USERNAME_FONT);
 		createTitle.setVerticalAlignment(SwingConstants.CENTER);
 		createTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		createTitle.setBounds(0, 45, 300, 40);
 		mainPanel.add(createTitle);
 		
-		JLabel projectNameLabel = new JLabel("Nome del progetto:");
-		projectNameLabel.setVerticalAlignment(SwingConstants.CENTER);
-		projectNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		projectNameLabel.setBounds(25, 90, 250, 40);
-		mainPanel.add(projectNameLabel);
+		JLabel cardNameLabel = new JLabel("Nome:");
+		cardNameLabel.setVerticalAlignment(SwingConstants.CENTER);
+		cardNameLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		cardNameLabel.setBounds(25, 90, 250, 40);
+		mainPanel.add(cardNameLabel);
 		
-		JTextField projectName = new JTextField();
-		projectName.setBounds(30, 130, 240, 30);
-		projectName.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-				if(e.getKeyChar() == KeyEvent.VK_ENTER) {
-					createProject(projectName.getText());
-				}
-			}
-		});
-		mainPanel.add(projectName);
+		JTextField cardName = new JTextField();
+		cardName.setBounds(30, 120, 240, 30);
+		mainPanel.add(cardName);
+		
+		JLabel cardDescriptionLabel = new JLabel("Descrizione:");
+		cardDescriptionLabel.setVerticalAlignment(SwingConstants.CENTER);
+		cardDescriptionLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		cardDescriptionLabel.setBounds(25, 150, 250, 40);
+		mainPanel.add(cardDescriptionLabel);
+		
+		JTextArea cardDescription = new JTextArea();
+		cardDescription.setBounds(30, 180, 240, 80);
+		cardDescription.setBorder(BorderFactory.createLineBorder(Color.gray));
+		mainPanel.add(cardDescription);
 		
 		errorMessage = new JLabel();
-		errorMessage.setBounds(30, 160, 240, 30);
+		errorMessage.setBounds(30, 260, 240, 30);
 		errorMessage.setForeground(Color.red);
 		errorMessage.setHorizontalAlignment(SwingConstants.CENTER);
 		errorMessage.setVerticalAlignment(SwingConstants.CENTER);
@@ -84,22 +91,23 @@ public class CreateProjectScreen extends JDialog {
 		save.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				createProject(projectName.getText());
+				addCard(projectName, cardName.getText(), cardDescription.getText());
 			}
 		});
-		save.setBounds(100, 190, 100, 30);
+		save.setBounds(100, 290, 100, 30);
 		mainPanel.add(save);
 	}
 	
-	private void createProject(String projectName) {
+	private void addCard(String projectName, String cardName, String cardDescription) {
 		setContentPane(loadingPanel);
 		invalidate();
 		validate();
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
-			if(serverConnection.createProject(projectName)) {
-				projectList.refresh();
+			if(serverConnection.addCard(projectName, cardName, cardDescription)) {
+				projectPanel.addCard(new CardLabel(projectName, cardName, cardDescription, serverConnection));
+				projectPanel.updateUI();
 				dispose();
 			} else {
 				errorMessage.setText(serverConnection.getMessage());

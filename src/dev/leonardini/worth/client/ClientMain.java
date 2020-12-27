@@ -4,7 +4,7 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-import dev.leonardini.worth.client.ui.LoginScreen;
+import dev.leonardini.worth.client.gui.windows.LoginScreen;
 
 public class ClientMain {
 	

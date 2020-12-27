@@ -16,8 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.networking.UsersChangeUpdater;
-import dev.leonardini.worth.client.ui.assets.PropicManager;
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project.CardLocation;
 import dev.leonardini.worth.networking.ChatFallbackReceiver;
