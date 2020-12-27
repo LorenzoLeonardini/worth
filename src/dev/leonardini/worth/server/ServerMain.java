@@ -380,6 +380,7 @@ public class ServerMain {
 			System.err.println("where RMIhost is the hostname used for rmi lookup");
 			System.exit(1);
 		}
+		
 		System.setProperty("java.rmi.server.hostname", args[0]);
 		new ServerMain();
 	}
