@@ -11,13 +11,17 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import dev.leonardini.worth.client.networking.UsersChangeUpdater;
 import dev.leonardini.worth.client.ui.assets.PropicManager;
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project.CardLocation;
+import dev.leonardini.worth.networking.ChatFallbackReceiver;
+import dev.leonardini.worth.networking.ChatFallbackRegistration;
 import dev.leonardini.worth.networking.NetworkUtils;
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.NotifyUsersChange;
@@ -26,13 +30,17 @@ import dev.leonardini.worth.networking.UserRegistration.InvalidRegistrationExcep
 import dev.leonardini.worth.networking.UsersChangeNotification;
 import dev.leonardini.worth.networking.WorthBuffer;
 
-public class ClientAPI {
+public class ClientAPI implements UserUpdateCallback {
 	
 	private String host;
 	private Registry registry;
 	private String message_info = "";
 	private SocketChannel socketChannel = null;
 	private UsersChangeNotification stub;
+	private ChatFallbackReceiver chatStub;
+	private ClientChatAPI chat;
+	private String username = null;
+	private Set<UserUpdateCallback> stubSet = new HashSet<UserUpdateCallback>();
 	
 	private Map<String, Boolean> users;
 	
@@ -42,7 +50,10 @@ public class ClientAPI {
 				logout();
 			if(stub != null)
 				unregisterUsersRMI();
+			chat.cleanUp();
+			unregisterChatRMI();
 		}));
+		chat = new ClientChatAPI();
 	}
 
 	public boolean estabilish(String host) {
@@ -83,12 +94,14 @@ public class ClientAPI {
 			message_info = msg;
 			return true;
 		} catch(RemoteException | InvalidRegistrationException ex) {
+			ex.printStackTrace();
 			if(ex instanceof InvalidRegistrationException)
 				message_info = ex.getMessage();
 			else
 				message_info = "Errore di connessione";
 			return false;
 		} catch (Exception e) {
+			e.printStackTrace();
 			message_info = "Errore di connessione";
 			return false;
 		}
@@ -110,13 +123,11 @@ public class ClientAPI {
 			e.printStackTrace();
 			return false;
 		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.LOGIN, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(username);
-		buffer.putString(password);
-		
-		if(comm.send()) { // Login outcome
+		return serverCommunicationBoolean(Operation.LOGIN,
+		(buffer) -> {
+			buffer.putString(username);
+			buffer.putString(password);
+		}, (buffer) -> {
 			this.users = new HashMap<String, Boolean>();
 			WorthBuffer users = new WorthBuffer(buffer.getArray());
 			while(users.hasRemaining()) {
@@ -127,11 +138,12 @@ public class ClientAPI {
 					PropicManager.addPropic(u, hash);
 				}
 			}
+			this.username = username;
+			registerUsersRMI();
+			registerChatRMI();
+			chat.multicastDiscovery(username, this.users);
 			return true;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return false;
+		});
 	}
 	
 	/**
@@ -145,6 +157,7 @@ public class ClientAPI {
 			buffer.end();
 			buffer.write(socketChannel);
 			socketChannel.close();
+			username = null;
 			return true;
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -152,9 +165,13 @@ public class ClientAPI {
 		}
 	}
 	
-	public boolean registerUsersRMI(UserUpdateCallback callback) {
+	public void registerUsersRMI(UserUpdateCallback callback) {
+		stubSet.add(callback);
+	}
+	
+	public boolean registerUsersRMI() {
 		try {
-			UsersChangeUpdater usersChangeUpdater = new UsersChangeUpdater(callback);
+			UsersChangeUpdater usersChangeUpdater = new UsersChangeUpdater(this);
 			stub = (UsersChangeNotification) UnicastRemoteObject.exportObject(usersChangeUpdater, 0);
 			NotifyUsersChange notification_service = (NotifyUsersChange) registry.lookup(NetworkUtils.USER_STATUS_NOTIFICATION);
 			notification_service.registerForCallback(stub);
@@ -166,7 +183,7 @@ public class ClientAPI {
 		}
 	}
 	
-	public boolean unregisterUsersRMI() {
+	private boolean unregisterUsersRMI() {
 		try {
 			NotifyUsersChange notification_service;
 			notification_service = (NotifyUsersChange) registry.lookup(NetworkUtils.USER_STATUS_NOTIFICATION);
@@ -179,22 +196,32 @@ public class ClientAPI {
 		}
 	}
 	
+	private void registerChatRMI() {
+		try {
+			chatStub = (ChatFallbackReceiver) UnicastRemoteObject.exportObject(chat, 0);
+			ChatFallbackRegistration chat_service = (ChatFallbackRegistration) registry.lookup(NetworkUtils.CHAT_FALLBACK);
+			chat_service.registerForCallback(chatStub);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void unregisterChatRMI() {
+		try {
+			ChatFallbackRegistration chat_service = (ChatFallbackRegistration) registry.lookup(NetworkUtils.CHAT_FALLBACK);
+			chat_service.unregisterForCallback(chatStub);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public boolean updateProfilePicture(String email) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return false;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.CHANGE_PROPIC, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(email);
-		
-		if(comm.send()) {
-			return true;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return false;
+		return serverCommunicationBoolean(Operation.CHANGE_PROPIC,
+		(buffer) -> {
+			buffer.putString(email);
+		});
 	}
 
 	public Map<String, Boolean> listUsers() {
@@ -210,212 +237,112 @@ public class ClientAPI {
 		return list;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public List<String> listProjects() {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return null;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.LIST_PROJECTS, socketChannel);
-
-		if(comm.send()) {
-			WorthBuffer buffer = comm.getBuffer();
+		return (List<String>) serverCommunicationObject(Operation.LIST_PROJECTS,
+		(buffer) -> {}, (buffer) -> {
 			int amount = buffer.getInt();
 			List<String> projects = new ArrayList<String>(amount);
 			for(int i = 0; i < amount; i++) {
 				projects.add(buffer.getString());
 			}
 			return projects;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return null;
+		});
 	}
 	
 	public boolean createProject(String projectName) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return false;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.CREATE_PROJECT, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-
-		if(comm.send()) {
-			return true;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return false;
+		return serverCommunicationBoolean(Operation.CREATE_PROJECT,
+		(buffer) -> {
+			buffer.putString(projectName);
+		});
 	}
 	
+	@SuppressWarnings("unchecked")
 	public List<String> showCards(String projectName) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return null;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.SHOW_CARDS, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-
-		if(comm.send()) {
+		return (List<String>) serverCommunicationObject(Operation.SHOW_CARDS,
+		(buffer) -> {
+			buffer.putString(projectName);
+		}, (buffer) -> {
 			int len = buffer.getInt();
 			List<String> cards = new ArrayList<String>(len);
 			for(int i = 0; i < len; i++) {
 				cards.add(buffer.getString());
 			}
 			return cards;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return null;
+		});
 	}
 	
-	public CardInfo showCard(String projectName, String card) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return null;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.SHOW_CARD, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-		buffer.putString(card);
-
-		if(comm.send()) {
-			return new CardInfo(card, buffer.getString(), CardLocation.values()[buffer.getInt()]);
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return null;
+	public CardInfo showCard(String projectName, String cardName) {
+		return (CardInfo) serverCommunicationObject(Operation.SHOW_CARD,
+		(buffer) -> {
+			buffer.putString(projectName);
+			buffer.putString(cardName);
+		}, (buffer) -> {
+			return new CardInfo(cardName, buffer.getString(), CardLocation.values()[buffer.getInt()]);
+		});
 	}
 	
 	public boolean addCard(String projectName, String cardName, String cardDescription) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return false;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.ADD_CARD, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-		buffer.putString(cardName);
-		buffer.putString(cardDescription);
-
-		if(comm.send()) {
-			return true;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return false;
+		return serverCommunicationBoolean(Operation.ADD_CARD,
+		(buffer) -> {
+			buffer.putString(projectName);
+			buffer.putString(cardName);
+			buffer.putString(cardDescription);
+		});
 	}
 	
 	public boolean moveCard(String projectName, String cardName, CardLocation src, CardLocation dst) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return false;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.MOVE_CARD, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-		buffer.putString(cardName);
-		buffer.putInt(src.ordinal());
-		buffer.putInt(dst.ordinal());
-
-		if(comm.send()) {
-			return true;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return false;
+		return serverCommunicationBoolean(Operation.MOVE_CARD,
+		(buffer) -> {
+			buffer.putString(projectName);
+			buffer.putString(cardName);
+			buffer.putInt(src.ordinal());
+			buffer.putInt(dst.ordinal());
+		});
 	}
 	
 	public boolean cancelProject(String projectName, String password) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return false;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.DELETE_PROJECT, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-		buffer.putString(password);
-
-		if(comm.send()) {
-			return true;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return false;
+		return serverCommunicationBoolean(Operation.DELETE_PROJECT,
+		(buffer) -> {
+			buffer.putString(projectName);
+			buffer.putString(password);
+		});
 	}
 	
 	public String getMessage() {
 		return message_info;
 	}
 
+	@SuppressWarnings("unchecked")
 	public List<String> showMembers(String projectName) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return null;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.SHOW_MEMBERS, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-
-		if(comm.send()) {
+		return (List<String>) serverCommunicationObject(Operation.SHOW_MEMBERS,
+		(buffer) -> {
+			buffer.putString(projectName);
+		}, (buffer) -> {
 			int amount = buffer.getInt();
 			List<String> members = new ArrayList<String>(amount);
 			for(int i = 0; i < amount; i++) {
 				members.add(buffer.getString());
 			}
 			return members;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return null;
+		});
 	}
 	
 	public boolean addMember(String projectName, String username) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return false;
-		}
-		
-		username = username.trim();
-		if(username.length() < 4) {
-			message_info = "";
-			return false;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.ADD_MEMBER, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-		buffer.putString(username);
-
-		if(comm.send()) {
-			return true;
-		}
-		message_info = comm.getErrorMessage();
-		System.out.println(message_info);
-		return false;
+		return serverCommunicationBoolean(Operation.ADD_MEMBER,
+		(buffer) -> {
+			buffer.putString(projectName);
+			buffer.putString(username);
+		});
 	}
 	
+	@SuppressWarnings("unchecked")
 	public List<String> getCardHistory(String projectName, String cardName) {
-		if(socketChannel == null) {
-			message_info = "Nessuna connessione";
-			return null;
-		}
-		
-		ServerCommunication comm = new ServerCommunication(Operation.GET_CARD_HISTORY, socketChannel);
-		WorthBuffer buffer = comm.getBuffer();
-		buffer.putString(projectName);
-		buffer.putString(cardName);
-
-		if(comm.send()) {
+		return (List<String>) serverCommunicationObject(Operation.GET_CARD_HISTORY, 
+		(buffer) -> {
+			buffer.putString(projectName);
+			buffer.putString(cardName);
+		}, (buffer) -> {
 			int length = buffer.getInt();
 			List<String> history = new ArrayList<String>(length);
 			for(int i = 0; i < length; i++) {
@@ -426,10 +353,91 @@ public class ClientAPI {
 				history.add(date + user + " ha spostato la card in " + location);
 			}
 			return history;
+		});
+	}
+	
+	private boolean serverCommunicationBoolean(Operation op, BufferWrite write) {
+		return serverCommunicationBoolean(op, write, (buffer) -> {return true;});
+	}
+	
+	private boolean serverCommunicationBoolean(Operation op, BufferWrite write, BufferReadBool read) {
+		if(socketChannel == null) {
+			message_info = "Nessuna connessione";
+			return false;
+		}
+		
+		ServerCommunication comm = new ServerCommunication(op, socketChannel);
+		WorthBuffer buffer = comm.getBuffer();
+		write.run(buffer);
+		
+		if(comm.send()) {
+			return read.run(buffer);
+		}
+		message_info = comm.getErrorMessage();
+		System.out.println(message_info);
+		return false;
+	}
+	
+	private Object serverCommunicationObject(Operation op, BufferWrite write, BufferReadObj read) {
+		if(socketChannel == null) {
+			message_info = "Nessuna connessione";
+			return null;
+		}
+		
+		ServerCommunication comm = new ServerCommunication(op, socketChannel);
+		WorthBuffer buffer = comm.getBuffer();
+		write.run(buffer);
+		
+		if(comm.send()) {
+			return read.run(buffer);
 		}
 		message_info = comm.getErrorMessage();
 		System.out.println(message_info);
 		return null;
+	}
+	
+	public boolean readChat(String projectName, ReceiveChatCallback chatCallback) {
+		chat.read(projectName, chatCallback);
+		return false;
+	}
+	
+	public boolean exitChat() {
+		chat.stop();
+		return false;
+	}
+	
+	public boolean sendChatMsg(String projectName, String message) {
+		chat.send(socketChannel, username, message);
+		return true;
+	}
+
+	@Override
+	public void updateUserStatus(String username, boolean status) {
+		for(UserUpdateCallback callback : stubSet)
+			callback.updateUserStatus(username, status);
+		
+		chat.updateUserStatus(username, status);
+	}
+
+	@Override
+	public void updateUserPropic(String username) {
+		for(UserUpdateCallback callback : stubSet)
+			callback.updateUserPropic(username);
+	}
+	
+	@FunctionalInterface
+	public interface BufferWrite {
+		void run(WorthBuffer buffer);
+	}
+	
+	@FunctionalInterface
+	public interface BufferReadBool {
+		boolean run(WorthBuffer buffer);
+	}
+	
+	@FunctionalInterface
+	public interface BufferReadObj {
+		Object run(WorthBuffer buffer);
 	}
 	
 }

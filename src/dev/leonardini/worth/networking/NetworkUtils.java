@@ -7,8 +7,11 @@ public class NetworkUtils {
 	
 	public static final int SERVER_PORT = 4000;
 	public static final int REGISTRY_PORT = 4001;
+	public static final int MULTICAST_PORT = 1300;
+	public static final String MULTICAST_ADDRESS = "239.255.1.3";
 	public static final String USER_REGISTRATION = "REGISTRATION-SERVICE";
 	public static final String USER_STATUS_NOTIFICATION = "NOTIFICATION-SERVICE";
+	public static final String CHAT_FALLBACK = "CHAT-SERVICE";
 	
 	protected static final byte END_CODE[] = { 0, 0, 0, 1, 1, 2, 3, 5, 8, 0, 0, 0 };
 	
@@ -25,7 +28,14 @@ public class NetworkUtils {
 		GET_CARD_HISTORY,
 		MOVE_CARD,
 		DELETE_PROJECT,
-		LOGOUT
+		LOGOUT,
+		CHAT
+	}
+	
+	public enum ChatOperation {
+		MESSAGE,
+		SERVER,
+		MULTICAST_DISCOVERY
 	}
 	
 	public static void putString(ByteBuffer buffer, String s) {

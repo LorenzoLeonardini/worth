@@ -5,23 +5,26 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+import dev.leonardini.worth.networking.ChatFallbackRegistration;
 import dev.leonardini.worth.networking.NetworkUtils;
 import dev.leonardini.worth.networking.NotifyUsersChange;
 import dev.leonardini.worth.networking.UserRegistration;
+import dev.leonardini.worth.server.networking.ChatForwarder;
 import dev.leonardini.worth.server.networking.UsersChangeNotifier;
 
 public class RMIServer {
 	
 	public static UsersChangeNotifier notifyUsersChange;
+	public static ChatForwarder chatForwarder;
 	
 	public static void init(UserManager userManager) {
 		try {
 			LocateRegistry.createRegistry(NetworkUtils.REGISTRY_PORT);
 			Registry r = LocateRegistry.getRegistry(NetworkUtils.REGISTRY_PORT);
 			
-			
 			initRegistration(r, userManager);
 			initNotifier(r);
+			initChatFallback(r);
 			Logger.Trace("RMI Registry running on port " + NetworkUtils.REGISTRY_PORT);
 		}
 		catch (RemoteException e) {
@@ -39,6 +42,12 @@ public class RMIServer {
 		notifyUsersChange = new UsersChangeNotifier(); 
 		NotifyUsersChange stub = (NotifyUsersChange) UnicastRemoteObject.exportObject(notifyUsersChange, 0);
 		r.rebind(NetworkUtils.USER_STATUS_NOTIFICATION, stub);
+	}
+	
+	private static void initChatFallback(Registry r) throws RemoteException {
+		chatForwarder = new ChatForwarder(); 
+		ChatFallbackRegistration stub = (ChatFallbackRegistration) UnicastRemoteObject.exportObject(chatForwarder, 0);
+		r.rebind(NetworkUtils.CHAT_FALLBACK, stub);
 	}
 	
 }

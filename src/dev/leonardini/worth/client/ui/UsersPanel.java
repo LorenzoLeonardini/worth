@@ -33,7 +33,10 @@ public class UsersPanel extends JPanel implements UserUpdateCallback {
 		});
 		setLayout(null);
 		setVisible(true);
-		SwingUtilities.updateComponentTreeUI(this);
+		
+		invalidate();
+		validate();
+		repaint();
 		
 		offlineLabel = new JLabel("Utenti offline:");
 		offlineLabel.setFont(FontUtils.USER_PANEL_TITLE_FONT);
@@ -61,7 +64,11 @@ public class UsersPanel extends JPanel implements UserUpdateCallback {
 			e.setBounds(0, y, 150, PropicManager.SIZE);
 			y += PropicManager.SIZE + 5;
 		}
-		SwingUtilities.updateComponentTreeUI(this);
+		
+		invalidate();
+		validate();
+		repaint();
+		
 		if(getParent() != null)
 			setPreferredSize(new Dimension(150, Math.max(y, getParent().getSize().height)));
 		else

@@ -25,7 +25,8 @@ public class MainScreen extends JFrame {
 	private JPanel mainPanel;
 	private JPanel noChat;
 	private String username;
-	private JPanel currentChat;
+	private ChatPanel currentChat;
+	private ClientAPI serverConnection;
 	
 	private void addSeparator(JPanel panel, int gridx) {
 		JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
@@ -42,6 +43,7 @@ public class MainScreen extends JFrame {
 
 	public MainScreen(String username, ClientAPI serverConnection) {
 		this.username = username;
+		this.serverConnection = serverConnection;
 		this.setSize(1100, 630);
 		this.setLocationRelativeTo(null);
 		this.setTitle("WORkTogetHer");
@@ -73,16 +75,18 @@ public class MainScreen extends JFrame {
 		this.setVisible(true);
 	}
 	
-	protected void openChat(String projectName) {
+	protected void openChat(String projectName, ProjectPanel projectPanel) {
 		noChat.setVisible(false);
-		currentChat = new ChatPanel(username);
+		currentChat = new ChatPanel(username, projectName, projectPanel, serverConnection);
 		currentChat.setPreferredSize(new Dimension(CHAT_SIZE, 10));
 		mainPanel.add(currentChat,  new GridBagConstraints(4, 0, 1, 1, 0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+		serverConnection.readChat(projectName, currentChat);
 	}
 	
 	protected void closeChat() {
 		noChat.setVisible(true);
 		mainPanel.remove(currentChat);
+		serverConnection.exitChat();
 	}
 	
 }

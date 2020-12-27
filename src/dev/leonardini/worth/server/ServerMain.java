@@ -7,6 +7,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.rmi.RemoteException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
@@ -17,6 +18,7 @@ import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project;
 import dev.leonardini.worth.data.Project.CardLocation;
 import dev.leonardini.worth.networking.NetworkUtils;
+import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.WorthBuffer;
 
 public class ServerMain {
@@ -87,338 +89,10 @@ public class ServerMain {
 		ProjectDB.save("projectdb");
 	}
 	
-	private void incoming(Session session, SelectionKey key) throws IOException {
-		if(session.buffer.remaining() == 0) return;
-		session.current_operation = session.buffer.getOperation();
-		
-		String username, password, projectName, user;
-		List<String> projectMembers;
-		
-		switch(session.current_operation) {
-			case LOGIN:
-				username = session.buffer.getString();
-				password = session.buffer.getString();
-				session.username = username;
-				Logger.Trace("Login request for user " + username);
-				try {
-					session.logged = userManager.login(username, password);
-					if(!session.logged) {
-						session.message = "Credenziali invalide";
-					}
-				} catch(Exception e) {
-					session.message = "Utente già connesso";
-				}
-				break;
-			case CHANGE_PROPIC:
-				if(!session.logged) {
-					break;
-				}
-				userManager.updateProfilePicture(session.username, session.buffer.getString());
-				break;
-			case CREATE_PROJECT:
-				if(!session.logged) {
-					break;
-				}
-				session.outcome = ProjectDB.createProject(session.buffer.getString(), session.username);
-				break;
-			case LOGOUT:
-				if(session.logged) {
-					userManager.logout(session.username);
-				}
-				key.cancel();
-				key.channel().close();
-				break;
-			case SHOW_MEMBERS:
-				projectName = session.buffer.getString();
-				projectMembers = ProjectDB.getMembers(projectName);
-				if(!projectMembers.contains(session.username)) {
-					session.outcome = false;
-					session.data = "Non fai parte del progetto";
-					break;
-				}
-				session.data = projectName;
-				session.outcome = true;
-				break;
-			case ADD_MEMBER:
-				if(!session.logged) {
-					break;
-				}
-				projectName = session.buffer.getString();
-				user = session.buffer.getString();
-				projectMembers = ProjectDB.getMembers(projectName);
-				if(!projectMembers.contains(session.username)) {
-					session.outcome = false;
-					session.data = "Non fai parte del progetto";
-					break;
-				}
-				if(!userManager.exists(user)) {
-					session.outcome = false;
-					session.data = "L'utente non esiste";
-					break;
-				}
-				if(projectMembers.contains(user)) {
-					session.outcome = false;
-					session.data = "L'utente è già membro";
-					break;
-				}
-				ProjectDB.addMember(projectName, user);
-				session.outcome = true;
-				break;
-			case SHOW_CARDS:
-				projectName = session.buffer.getString();
-				projectMembers = ProjectDB.getMembers(projectName);
-				if(!projectMembers.contains(session.username)) {
-					session.outcome = false;
-					session.data = "Non fai parte del progetto";
-					break;
-				}
-				session.data = projectName;
-				session.outcome = true;
-				break;
-			case SHOW_CARD:
-			case GET_CARD_HISTORY:
-				projectName = session.buffer.getString();
-				String cardName = session.buffer.getString();
-				projectMembers = ProjectDB.getMembers(projectName);
-				if(!projectMembers.contains(session.username)) {
-					session.outcome = false;
-					session.data = "Non fai parte del progetto";
-					break;
-				}
-				session.data = new String[] { projectName, cardName };
-				session.outcome = true;
-				break;
-			case ADD_CARD:
-				projectName = session.buffer.getString();
-				cardName = session.buffer.getString();
-				String cardDescription = session.buffer.getString();
-				projectMembers = ProjectDB.getMembers(projectName);
-				if(!projectMembers.contains(session.username)) {
-					session.outcome = false;
-					session.data = "Non fai parte del progetto";
-					break;
-				}
-				session.data = new String[] { projectName, cardName, cardDescription };
-				session.outcome = true;
-				break;
-			case MOVE_CARD:
-				projectName = session.buffer.getString();
-				cardName = session.buffer.getString();
-				CardLocation src = CardLocation.values()[session.buffer.getInt()];
-				CardLocation dst = CardLocation.values()[session.buffer.getInt()];
-				projectMembers = ProjectDB.getMembers(projectName);
-				if(!projectMembers.contains(session.username)) {
-					session.outcome = false;
-					session.data = "Non fai parte del progetto";
-					break;
-				}
-				session.data = new Object[] { projectName, cardName, src, dst };
-				session.outcome = true;
-				break;
-			case DELETE_PROJECT:
-				projectName = session.buffer.getString();
-				password = session.buffer.getString();
-				projectMembers = ProjectDB.getMembers(projectName);
-				if(!projectMembers.contains(session.username)) {
-					session.outcome = false;
-					session.data = "Non fai parte del progetto";
-					break;
-				}
-				if(!userManager.securityLogin(session.username, password)) {
-					session.outcome = false;
-					session.data = "Password errata";
-					break;
-				}
-				session.data = projectName;
-				session.outcome = true;
-				break;
-			default:
-				break;
-		}
-		
-		session.buffer.clear();
-	}
-	
-	private void outgoing(SelectionKey key, WorthBuffer buffer) {
-		Session session = (Session) key.attachment();
-		buffer.putOperation(session.current_operation);
-		switch(session.current_operation) {
-			case LOGIN:
-				buffer.putBoolean(session.logged);
-				Logger.Trace("Login outcome: " + session.logged);
-				if(session.logged) {
-					buffer.put(userManager.getUsersStatus());
-				} else {
-					buffer.putString(session.message);
-				}
-				break;
-			case CHANGE_PROPIC:
-				buffer.putBoolean(session.logged);
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				}
-				break;
-			case CREATE_PROJECT:
-				buffer.putBoolean(session.logged && session.outcome);
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString("Progetto già esistente");
-				}
-				break;
-			case LIST_PROJECTS:
-				buffer.putBoolean(session.logged);
-				if(session.logged) {
-					List<Project> projects = ProjectDB.listUserProjects(session.username);
-					buffer.putInt(projects.size());
-					for(Project p : projects) {
-						buffer.putString(p.getName());
-					}
-				} else {
-					buffer.putString("È necessario l'accesso");
-				}
-				break;
-			case SHOW_MEMBERS:
-				String projectName = (String) session.data;
-				List<String> members = ProjectDB.getMembers(projectName);
-				buffer.putBoolean(session.logged && session.outcome && (members != null));
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				} else if(members == null) {
-					buffer.putString("Progetto inesistente");
-				} else {
-					buffer.putInt(members.size());
-					for(String member : members) {
-						buffer.putString(member);
-					}
-				}
-				break;
-			case ADD_MEMBER:
-				buffer.putBoolean(session.logged && session.outcome);
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				}
-				break;
-			case SHOW_CARDS:
-				projectName = (String) session.data;
-				List<String> cards = ProjectDB.getCards(projectName);
-				buffer.putBoolean(session.logged && session.outcome && (cards != null));
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				} else if(cards == null) {
-					buffer.putString("Progetto inesistente");
-				} else {
-					buffer.putInt(cards.size());
-					for(String card : cards) {
-						buffer.putString(card);
-					}
-				}
-				break;
-			case SHOW_CARD:
-				projectName = ((String[]) session.data)[0];
-				String cardName = ((String[]) session.data)[1];
-				CardInfo info = ProjectDB.getCard(projectName, cardName);
-				buffer.putBoolean(session.logged && session.outcome && (info != null));
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				} else if(info == null) {
-					buffer.putString("Progetto o card inesistente");
-				} else {
-					buffer.putString(info.description);
-					buffer.putInt(info.list.ordinal());
-				}
-				break;
-			case GET_CARD_HISTORY:
-				projectName = ((String[]) session.data)[0];
-				cardName = ((String[]) session.data)[1];
-				List<HistoryEntry> history = ProjectDB.getCardHistory(projectName, cardName);
-				buffer.putBoolean(session.logged && session.outcome && (history != null));
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				} else if(history == null) {
-					buffer.putString("Progetto o card inesistente");
-				} else {
-					buffer.putInt(history.size());
-					for(HistoryEntry e : history) {
-						buffer.putLong(e.timestamp);
-						buffer.putString(e.user);
-						buffer.putInt(e.location.ordinal());
-					}
-				}
-				break;
-			case ADD_CARD:
-				projectName = ((String[]) session.data)[0];
-				cardName = ((String[]) session.data)[1];
-				String cardDescription = ((String[]) session.data)[2];
-				String error = ProjectDB.addCard(projectName, cardName, cardDescription, session.username);
-				buffer.putBoolean(session.logged && session.outcome && error == null);
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				} else if(error != null) {
-					buffer.putString(error);
-				}
-				break;
-			case MOVE_CARD:
-				projectName = (String)((Object[]) session.data)[0];
-				cardName = (String)((Object[]) session.data)[1];
-				CardLocation src = (CardLocation)((Object[]) session.data)[2];
-				CardLocation dst = (CardLocation)((Object[]) session.data)[3];
-				boolean outcome;
-				String message = "Progetto inesistente";
-				try {
-					outcome = ProjectDB.moveCard(projectName, cardName, src, dst, session.username);
-				}
-				catch (Exception e) {
-					outcome = false;
-					message = e.getMessage();
-				}
-				buffer.putBoolean(session.logged && session.outcome && outcome);
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				} else if(!outcome) {
-					buffer.putString(message);
-				}
-				break;
-			case DELETE_PROJECT:
-				projectName = (String)session.data;
-				message = "Progetto inesistente";
-				try {
-					outcome = ProjectDB.deleteProject(projectName, session.username);
-				}
-				catch (Exception e) {
-					outcome = false;
-					message = e.getMessage();
-				}
-				buffer.putBoolean(session.logged && session.outcome && outcome);
-				if(!session.logged) {
-					buffer.putString("È necessario l'accesso");
-				} else if(!session.outcome) {
-					buffer.putString((String) session.data);
-				} else if(!outcome) {
-					buffer.putString(message);
-				}
-				break;
-			default:
-				break;
-		}
-		buffer.end();
-	}
-	
 	private void run() {
+		ServerHandler handler = new ServerHandler();
+		registerHandlers(handler);
+		
 		serverChannel = null;
 		selector = null;
 		try {
@@ -469,14 +143,15 @@ public class ServerMain {
 							}
 							
 							if(session.buffer.isFinished()) {
-								incoming(session, key);
+								if(session.buffer.remaining() == 0) break;
+								session.current_operation = session.buffer.getOperation();
 								if(key.isValid())
 									key.interestOps(SelectionKey.OP_WRITE);
 							}
 						} else if(key.isWritable()) {
 							SocketChannel client = (SocketChannel) key.channel();
-							WorthBuffer buffer = new WorthBuffer();
-							outgoing(key, buffer);
+							WorthBuffer buffer = handler.handle(key);
+							buffer.end();
 							buffer.write(client);
 							key.interestOps(SelectionKey.OP_READ);
 						} else {
@@ -496,26 +171,209 @@ public class ServerMain {
 			}
 		}
 	}
+	
+	private void registerHandlers(ServerHandler handler) {
+		handler.addHandler(Operation.LOGIN, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String username = session.buffer.getString();
+			String password = session.buffer.getString();
+			session.username = username;
+			Logger.Trace("Login request for user " + username);
+			try {
+				session.logged = userManager.login(username, password);
+				Logger.Trace("Login outcome: " + session.logged);
+			} catch(Exception e) {
+				out.putBoolean(false);
+				out.putString("Utente già connesso");
+				return;
+			}
+			out.putBoolean(session.logged);
+			if(session.logged) {
+				out.put(userManager.getUsersStatus());
+			} else {
+				out.putString("Credenziali invalide");
+			}
+		}, ServerHandler.NONE);
+		
+		handler.addHandler(Operation.CHANGE_PROPIC, (Session session, SelectionKey key, WorthBuffer out) -> {
+			userManager.updateProfilePicture(session.username, session.buffer.getString());
+			out.putBoolean(true);
+		}, ServerHandler.LOGGED);
+		
+		handler.addHandler(Operation.CREATE_PROJECT, (Session session, SelectionKey key, WorthBuffer out) -> {
+			boolean outcome = ProjectDB.createProject(session.buffer.getString(), session.username);
+			out.putBoolean(outcome);
+			if(!outcome) {
+				out.putString("Progetto già esistente");
+			}
+		}, ServerHandler.LOGGED);
+		
+		handler.addHandler(Operation.LOGOUT, (Session session, SelectionKey key, WorthBuffer out) -> {
+			if(session.logged) {
+				userManager.logout(session.username);
+			}
+			key.cancel();
+			try {
+				key.channel().close();
+			}
+			catch (IOException e) {}				
+		}, ServerHandler.NONE);
+		
+		handler.addHandler(Operation.SHOW_MEMBERS, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			List<String> members = ProjectDB.getMembers(projectName);
+			out.putInt(members.size());
+			for(String member : members) {
+				out.putString(member);
+			}
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.ADD_MEMBER, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			String user = session.buffer.getString();
+			List<String> members = ProjectDB.getMembers(projectName);
+			if(!userManager.exists(user)) {
+				out.putBoolean(false);
+				out.putString("L'utente non esiste");
+				return;
+			}
+			if(members.contains(user)) {
+				out.putBoolean(false);
+				out.putString("L'utente è già membro");
+				return;
+			}
+			ProjectDB.addMember(projectName, user);
+			out.putBoolean(true);
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.SHOW_CARDS, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			List<String> cards = ProjectDB.getCards(projectName);
+			out.putBoolean(true);
+			out.putInt(cards.size());
+			for(String card : cards) {
+				out.putString(card);
+			}
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.SHOW_CARD, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			String cardName = session.buffer.getString();
+			CardInfo info = ProjectDB.getCard(projectName, cardName);
+			out.putBoolean(info != null);
+			if(info == null) {
+				out.putString("Card inesistente");
+			} else {
+				out.putString(info.description);
+				out.putInt(info.list.ordinal());
+			}
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.GET_CARD_HISTORY, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			String cardName = session.buffer.getString();
+			List<HistoryEntry> history = ProjectDB.getCardHistory(projectName, cardName);
+			out.putBoolean(history != null);
+			if(history == null) {
+				out.putString("Card inesistente");
+			} else {
+				out.putInt(history.size());
+				for(HistoryEntry e : history) {
+					out.putLong(e.timestamp);
+					out.putString(e.user);
+					out.putInt(e.location.ordinal());
+				}
+			}
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.ADD_CARD, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			String cardName = session.buffer.getString();
+			String cardDescription = session.buffer.getString();
+			String error = ProjectDB.addCard(projectName, cardName, cardDescription, session.username);
+			out.putBoolean(error == null);
+			if(error != null) {
+				out.putString(error);
+			}
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.MOVE_CARD, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			String cardName = session.buffer.getString();
+			CardLocation src = CardLocation.values()[session.buffer.getInt()];
+			CardLocation dst = CardLocation.values()[session.buffer.getInt()];
+			try {
+				ProjectDB.moveCard(projectName, cardName, src, dst, session.username);
+				out.putBoolean(true);
+				sendChatNotification(projectName, cardName, session.username, src, dst);
+			}
+			catch (Exception e) {
+				out.putBoolean(false);
+				out.putString(e.getMessage());
+			}
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.DELETE_PROJECT, (Session session, SelectionKey key, WorthBuffer out) -> {
+			String projectName = session.buffer.getString();
+			String password = session.buffer.getString();
+			if(!userManager.securityLogin(session.username, password)) {
+				out.putBoolean(false);
+				out.putString("Password errata");
+				return;
+			}
+			try {
+				ProjectDB.deleteProject(projectName, session.username);
+				out.putBoolean(true);
+			}
+			catch (Exception e) {
+				out.putBoolean(false);
+				out.putString(e.getMessage());
+			}
+		}, ServerHandler.PROJECT_MEMBER);
+		
+		handler.addHandler(Operation.CHAT, (Session session, SelectionKey key, WorthBuffer out) -> {
+			session.buffer.getInt();
+			long timestamp = session.buffer.getLong();
+			String projectName = session.buffer.getString();
+			String username = session.buffer.getString();
+			String text = session.buffer.getString();
+			
+			RMIServer.chatForwarder.send(timestamp, projectName, username, text);
+			out.putBoolean(true);
+		}, ServerHandler.LOGGED);
+		
+		handler.addHandler(Operation.LIST_PROJECTS, (Session session, SelectionKey key, WorthBuffer out) -> {
+			out.putBoolean(true);
+			List<Project> projects = ProjectDB.listUserProjects(session.username);
+			out.putInt(projects.size());
+			for(Project p : projects) {
+				out.putString(p.getName());
+			}
+		}, ServerHandler.LOGGED);
+	}
 
 	public static void main(String[] args) {
 		new ServerMain();
 	}
 	
+	private void sendChatNotification(String projectName, String card, String user, CardLocation from, CardLocation to) {
+		try {
+			RMIServer.chatForwarder.send(System.currentTimeMillis(), projectName, card, user, from, to);
+		}
+		catch (RemoteException e) {
+			e.printStackTrace();
+		} 
+	}
+	
 	class Session {
 		String username;
 		boolean logged = false;
-		boolean outcome = false;
-		Object data;
 		NetworkUtils.Operation current_operation;
 		WorthBuffer buffer = new WorthBuffer();
 		public int ttl = 100;
-		String message;
 		
 		@Override
 		public String toString() {
 			return "username:" + username + ";logged:" + logged + ";operation:" + current_operation;
 		}
 	}
-
-	
 }

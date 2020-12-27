@@ -1,7 +1,9 @@
 package dev.leonardini.worth.networking;
 
 import java.io.IOException;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.SocketChannel;
 import java.nio.channels.WritableByteChannel;
@@ -220,6 +222,18 @@ public class WorthBuffer {
 		buffer.compact();
 	}
 	
+	public void flip() {
+		buffer.flip();
+	}
+	
+	public void mark() {
+		buffer.mark();
+	}
+	
+	public void reset() {
+		buffer.reset();
+	}
+	
 	public byte[] array() {
 		return buffer.array();
 	}
@@ -230,6 +244,10 @@ public class WorthBuffer {
 	
 	public String toString() {
 		return buffer.toString();
+	}
+
+	public SocketAddress receive(DatagramChannel dc) throws IOException {
+		return dc.receive(buffer);
 	}
 
 }

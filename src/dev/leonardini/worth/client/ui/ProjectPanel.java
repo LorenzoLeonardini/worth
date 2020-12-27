@@ -20,8 +20,9 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -34,7 +35,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 
 import dev.leonardini.worth.client.ClientAPI;
@@ -47,7 +47,7 @@ public class ProjectPanel extends JPanel {
 	private static final long serialVersionUID = 3204062925071718780L;
 
 	private SpringLayout layout;
-	private CardColumn todoArea;
+	private CardColumn todoArea, inprogressArea, toberevisedArea, doneArea;
 	private ClientAPI clientApi;
 	private String projectName;
 
@@ -120,7 +120,7 @@ public class ProjectPanel extends JPanel {
 		
 		addSeparator(leftSide);
 		
-		CardColumn inprogressArea = new CardColumn("In progress:", CardLocation.IN_PROGRESS);
+		inprogressArea = new CardColumn("In progress:", CardLocation.IN_PROGRESS);
 		JScrollPane inprogressScroll = wrapInScrollPane(inprogressArea);
 		layout.putConstraint(SpringLayout.NORTH, inprogressScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, inprogressScroll, 3, SpringLayout.HORIZONTAL_CENTER, leftSide);
@@ -130,7 +130,7 @@ public class ProjectPanel extends JPanel {
 		
 		addSeparator(this);
 		
-		CardColumn toberevisedArea = new CardColumn("To be revised:", CardLocation.TO_BE_REVISED);
+		toberevisedArea = new CardColumn("To be revised:", CardLocation.TO_BE_REVISED);
 		JScrollPane toberevisedScroll = wrapInScrollPane(toberevisedArea);
 		layout.putConstraint(SpringLayout.NORTH, toberevisedScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, toberevisedScroll, 3, SpringLayout.HORIZONTAL_CENTER, this);
@@ -140,7 +140,7 @@ public class ProjectPanel extends JPanel {
 		
 		addSeparator(rightSide);
 		
-		CardColumn doneArea = new CardColumn("Done:", CardLocation.DONE);
+		doneArea = new CardColumn("Done:", CardLocation.DONE);
 		JScrollPane doneScroll = wrapInScrollPane(doneArea);
 		layout.putConstraint(SpringLayout.NORTH, doneScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, doneScroll, 3, SpringLayout.HORIZONTAL_CENTER, rightSide);
@@ -212,11 +212,32 @@ public class ProjectPanel extends JPanel {
 		updateUI();
 	}
 	
+	protected void moveCard(String card, CardLocation from, CardLocation to) {
+		try {
+			locationToColumn(to).addCard(locationToColumn(from).removeCard(card));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane optionPane = new JOptionPane("Errore di sincronizzazione, chiudi e riapri il progetto", JOptionPane.ERROR_MESSAGE);    
+			JDialog dialog = optionPane.createDialog("Errore");
+			dialog.setAlwaysOnTop(true);
+			dialog.setVisible(true);
+		}
+	}
+	
+	private CardColumn locationToColumn(CardLocation loc) {
+		if(loc == CardLocation.TODO) return todoArea;
+		if(loc == CardLocation.IN_PROGRESS) return inprogressArea;
+		if(loc == CardLocation.TO_BE_REVISED) return toberevisedArea;
+		if(loc == CardLocation.DONE) return doneArea;
+		return null;
+	}
+	
 	class CardColumn extends JPanel {
 		
 		private static final long serialVersionUID = -2613788183663876833L;
 		
-		private List<CardLabel> cards = new ArrayList<CardLabel>();
+		private Map<String, CardLabel> cards = new HashMap<String, CardLabel>();
 		private JLabel titleLabel;
 		private SpringLayout layout;
 		public final CardLocation column_location;
@@ -239,7 +260,7 @@ public class ProjectPanel extends JPanel {
 		public void reload() {
 			JLabel prev = titleLabel;
 			int h = 22;
-			for(JLabel card : cards) {
+			for(JLabel card : cards.values()) {
 				layout.putConstraint(SpringLayout.NORTH, card, 6, SpringLayout.SOUTH, prev);
 				layout.putConstraint(SpringLayout.WEST, card, 4, SpringLayout.WEST, this);
 				layout.putConstraint(SpringLayout.SOUTH, card, card.getPreferredSize().height, SpringLayout.NORTH, card);
@@ -248,19 +269,32 @@ public class ProjectPanel extends JPanel {
 				prev = card;
 			}
 			setPreferredSize(new Dimension(titleLabel.getPreferredSize().width, h));
-			SwingUtilities.updateComponentTreeUI(this);
+			
+			invalidate();
+			validate();
+			repaint();
 		}
 		
 		public void addCard(CardLabel card) {
 			add(card);
-			cards.add(card);
+			cards.put(card.cardName, card);
 			reload();
 		}
 		
 		public void removeCard(CardLabel card) {
 			remove(card);
-			cards.remove(card);
+			cards.remove(card.cardName);
 			reload();
+		}
+		
+		public CardLabel removeCard(String card) throws Exception {
+			if(!cards.containsKey(card)) {
+				throw new Exception("No such card");
+			}
+			CardLabel c = cards.remove(card);
+			remove(c);
+			reload();
+			return c;
 		}
 		
 	}
@@ -337,10 +371,7 @@ public class ProjectPanel extends JPanel {
 				if (event.isDataFlavorSupported(TransferableCard.getFlavor())) {
 					event.acceptDrop(DnDConstants.ACTION_MOVE);
 					
-					if(clientApi.moveCard(projectName, card.cardName, ((CardColumn)card.getParent()).column_location, this.panel.column_location)) {
-						((CardColumn)card.getParent()).removeCard(card);
-						this.panel.addCard(card);
-					} else {
+					if(!clientApi.moveCard(projectName, card.cardName, ((CardColumn)card.getParent()).column_location, this.panel.column_location)) {
 						JOptionPane optionPane = new JOptionPane(clientApi.getMessage(), JOptionPane.ERROR_MESSAGE);    
 						JDialog dialog = optionPane.createDialog("Errore");
 						dialog.setAlwaysOnTop(true);

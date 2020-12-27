@@ -90,8 +90,9 @@ public class MainPanel extends JPanel {
 	}
 	
 	protected void openProject(String projectName) {
-		projectList.setViewportView(new ProjectPanel(clientApi, projectName, this));
-		mainScreen.openChat(projectName);
+		ProjectPanel projectPanel = new ProjectPanel(clientApi, projectName, this);
+		projectList.setViewportView(projectPanel);
+		mainScreen.openChat(projectName, projectPanel);
 	}
 
 	public void backToProjectList() {

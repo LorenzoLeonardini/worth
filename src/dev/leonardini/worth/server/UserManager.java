@@ -58,6 +58,8 @@ public class UserManager extends RemoteServer implements UserRegistration {
 			throw new InvalidRegistrationException("Username troppo corto. Almeno 4 caratteri");
 		if (password.length() < 6)
 			throw new InvalidRegistrationException("Password troppo corta. Almeno 6 caratteri");
+		if (username.equalsIgnoreCase("system") || username.equalsIgnoreCase("server"))
+			throw new InvalidRegistrationException("Username riservato");
 
 		User user;
 		synchronized (users) {

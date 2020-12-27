@@ -2,6 +2,8 @@ package dev.leonardini.worth.client.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -10,11 +12,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
+import dev.leonardini.worth.client.ClientAPI;
+import dev.leonardini.worth.client.ReceiveChatCallback;
 import dev.leonardini.worth.client.ui.assets.PropicManager;
+import dev.leonardini.worth.data.Project.CardLocation;
 
-public class ChatPanel extends JPanel {
+public class ChatPanel extends JPanel implements ReceiveChatCallback {
 
 	private static final long serialVersionUID = 1317326421983834032L;
 
@@ -26,9 +30,11 @@ public class ChatPanel extends JPanel {
 	
 	private String my_username;
 	private ChatMessage lastAdded = null;
+	private ProjectPanel projectPanel;
 
-	public ChatPanel(String username) {
+	public ChatPanel(String username, String projectName, ProjectPanel projectPanel, ClientAPI clientApi) {
 		this.my_username = username;
+		this.projectPanel = projectPanel;
 		SpringLayout layout = new SpringLayout();
 		setLayout(layout);
 		title = new JLabel("Chat");
@@ -51,6 +57,17 @@ public class ChatPanel extends JPanel {
 		input = new JTextArea();
 		input.setPreferredSize(new Dimension(100, 60));
 		input.setBorder(BorderFactory.createLineBorder(Color.gray));
+		input.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+				if(e.getKeyChar() == KeyEvent.VK_ENTER) {
+					new Thread(() -> {
+						clientApi.sendChatMsg(projectName, input.getText());
+						input.setText("");
+					}).start();
+				}
+			}
+		});
 		add(input);
 		
 		layout.putConstraint(SpringLayout.NORTH, title, 5, SpringLayout.NORTH, this);
@@ -65,16 +82,6 @@ public class ChatPanel extends JPanel {
 		layout.putConstraint(SpringLayout.SOUTH, input, -6, SpringLayout.SOUTH, this);
 		layout.putConstraint(SpringLayout.WEST, input, 6, SpringLayout.WEST, this);
 		layout.putConstraint(SpringLayout.EAST, input, -6, SpringLayout.EAST, this);
-		
-		addMessage("paolo", "Prova 123");
-		addMessage("paolo", "Prova 12345677");
-		addMessage("asdasd", "Ascolta le :Papille Gustative");
-		addMessage("pianka", "<3");
-		systemMessage("System message");
-		addMessage("pianka", "<3");
-		addMessage("pianka", "<3");
-		addMessage("pianka", "<3");
-		addMessage("pianka", "<3");
 	}
 	
 	public void addMessage(String username, String message) {
@@ -102,12 +109,14 @@ public class ChatPanel extends JPanel {
 		lastAdded = new_message;
 		
 		Dimension size = messages.getPreferredSize();
-		size.height += new_message.getPreferredSize().height += 10;
+		size.height += new_message.getPreferredSize().height + 5 + (icon ? 5 : -5);
 		messages.setPreferredSize(size);
 		
 		scrollable.getVerticalScrollBar().setValue(scrollable.getVerticalScrollBar().getMaximum());
 		
-		SwingUtilities.updateComponentTreeUI(this);
+		invalidate();
+		validate();
+		repaint();
 	}
 	
 	class ChatMessage extends JPanel {
@@ -166,17 +175,14 @@ public class ChatPanel extends JPanel {
 			
 			setLayout(null);
 			
-			int height = 0;
-			
 	        text = new JLabel("<html><body style='padding: 8px; text-align: center; width: " + (MainScreen.CHAT_SIZE * 0.5) + "px'>" + message + "</body></html>");
 	        
         	Dimension size = text.getPreferredSize();
-        	text.setBounds(35, height, size.width, size.height);
-	        height += text.getHeight();
+        	text.setBounds(35, 0, size.width, size.height);
 	        text.setFont(FontUtils.CHAT_SYSTEM_FONT);
 	        add(text);
 	        
-	        setPreferredSize(new Dimension(text.getWidth(), height));
+	        setPreferredSize(new Dimension(text.getWidth(), size.height));
 		}
 		
 		public void removeBottomBorder() {
@@ -184,6 +190,17 @@ public class ChatPanel extends JPanel {
 			text.setBorder(BorderFactory.createMatteBorder(icon ? 1 : 0, 1, 0, 1, Color.gray));
 		}
 		
+	}
+
+	@Override
+	public void receivedChatMessage(String username, String message) {
+		addMessage(username, message);
+	}
+
+	@Override
+	public void receivedSystemNotification(String user, String card, CardLocation from, CardLocation to) {
+		projectPanel.moveCard(card, from, to);
+		systemMessage(user + " ha spostato " + card + " in " + to);
 	}
 	
 }

@@ -109,7 +109,10 @@ public class MembersScreen extends JDialog {
 		y_position += PropicManager.SIZE + 5;
 		panel.add(u);
 		
-		SwingUtilities.updateComponentTreeUI(this);
+		invalidate();
+		validate();
+		repaint();
+		
 		if(panel.getParent() != null)
 			panel.setPreferredSize(new Dimension(200, Math.max(y_position, getHeight())));
 		else
