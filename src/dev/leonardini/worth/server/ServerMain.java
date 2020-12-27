@@ -376,7 +376,7 @@ public class ServerMain {
 
 	public static void main(String[] args) {
 		if(args.length != 1) {
-			System.err.println("Usage: WORTHServer RMIhost");
+			System.err.println("Usage: ./WORTHServer RMIhost");
 			System.err.println("where RMIhost is the hostname used for rmi lookup");
 			System.exit(1);
 		}
