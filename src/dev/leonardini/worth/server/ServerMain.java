@@ -351,10 +351,6 @@ public class ServerMain {
 			}
 		}, ServerHandler.LOGGED);
 	}
-
-	public static void main(String[] args) {
-		new ServerMain();
-	}
 	
 	private void sendChatNotification(String projectName, String card, String user, CardLocation from, CardLocation to) {
 		try {
@@ -376,5 +372,14 @@ public class ServerMain {
 		public String toString() {
 			return "username:" + username + ";logged:" + logged + ";operation:" + current_operation;
 		}
+	}
+
+	public static void main(String[] args) {
+		if(args.length != 1) {
+			System.err.println("Usage: WORTHServer RMIhost\nwhere RMIhost is the hostname used for rmi lookup");
+			System.exit(1);
+		}
+		System.setProperty("java.rmi.server.hostname", args[0]);
+		new ServerMain();
 	}
 }
