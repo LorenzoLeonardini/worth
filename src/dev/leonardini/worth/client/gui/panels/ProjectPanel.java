@@ -38,7 +38,7 @@ public class ProjectPanel extends JPanel {
 	private CardColumn todoArea, inprogressArea, toberevisedArea, doneArea;
 	private String projectName;
 
-	public ProjectPanel(ClientAPI clientApi, String project, MainPanel mainPanel) {
+	public ProjectPanel(String project, MainPanel mainPanel) {
 		this.projectName = project;
 		layout = new SpringLayout();
 		setLayout(layout);
@@ -58,7 +58,7 @@ public class ProjectPanel extends JPanel {
 		JButton newCard = new JButton("Nuova card");
 		newCard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JDialog f = new CardCreationDialog(clientApi, project, _this);
+				JDialog f = new CardCreationDialog(project, _this);
 				f.setVisible(true);
 			}
 		});
@@ -70,7 +70,7 @@ public class ProjectPanel extends JPanel {
 		JButton members = new JButton("Membri");
 		members.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new ProjectMembersDialog(project, clientApi).setVisible(true);
+				new ProjectMembersDialog(project).setVisible(true);
 			}
 		});
 		members.setPreferredSize(new Dimension(130, 30));
@@ -81,7 +81,7 @@ public class ProjectPanel extends JPanel {
 		JButton delete = new JButton("Elimina");
 		delete.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new ProjectDeletionDialog(project, clientApi, mainPanel).setVisible(true);
+				new ProjectDeletionDialog(project, mainPanel).setVisible(true);
 			}
 		});
 		delete.setPreferredSize(new Dimension(130, 30));
@@ -97,7 +97,7 @@ public class ProjectPanel extends JPanel {
 		layout.putConstraint(SpringLayout.EAST, rightSide, -6, SpringLayout.EAST, this);
 		
 		todoArea = new CardColumn("Todo:", CardLocation.TODO);
-		new MyDropTargetListener(todoArea, project, clientApi);
+		new MyDropTargetListener(todoArea, project);
 		JScrollPane todoScroll = wrapInScrollPane(todoArea);
 		layout.putConstraint(SpringLayout.NORTH, todoScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, todoScroll, 6, SpringLayout.WEST, this);
@@ -108,7 +108,7 @@ public class ProjectPanel extends JPanel {
 		addSeparator(leftSide);
 		
 		inprogressArea = new CardColumn("In progress:", CardLocation.IN_PROGRESS);
-		new MyDropTargetListener(inprogressArea, project, clientApi);
+		new MyDropTargetListener(inprogressArea, project);
 		JScrollPane inprogressScroll = wrapInScrollPane(inprogressArea);
 		layout.putConstraint(SpringLayout.NORTH, inprogressScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, inprogressScroll, 3, SpringLayout.HORIZONTAL_CENTER, leftSide);
@@ -119,7 +119,7 @@ public class ProjectPanel extends JPanel {
 		addSeparator(this);
 		
 		toberevisedArea = new CardColumn("To be revised:", CardLocation.TO_BE_REVISED);
-		new MyDropTargetListener(toberevisedArea, project, clientApi);
+		new MyDropTargetListener(toberevisedArea, project);
 		JScrollPane toberevisedScroll = wrapInScrollPane(toberevisedArea);
 		layout.putConstraint(SpringLayout.NORTH, toberevisedScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, toberevisedScroll, 3, SpringLayout.HORIZONTAL_CENTER, this);
@@ -130,7 +130,7 @@ public class ProjectPanel extends JPanel {
 		addSeparator(rightSide);
 		
 		doneArea = new CardColumn("Done:", CardLocation.DONE);
-		new MyDropTargetListener(doneArea, project, clientApi);
+		new MyDropTargetListener(doneArea, project);
 		JScrollPane doneScroll = wrapInScrollPane(doneArea);
 		layout.putConstraint(SpringLayout.NORTH, doneScroll, 6, SpringLayout.SOUTH, members);
 		layout.putConstraint(SpringLayout.WEST, doneScroll, 3, SpringLayout.HORIZONTAL_CENTER, rightSide);
@@ -138,14 +138,14 @@ public class ProjectPanel extends JPanel {
 		layout.putConstraint(SpringLayout.EAST, doneScroll, -6, SpringLayout.EAST, this);
 		add(doneScroll);
 		
-		List<String> cards = clientApi.showCards(project);
+		List<String> cards = ClientAPI.get().showCards(project);
 		for(String card : cards) {
-			CardInfo info = clientApi.showCard(project, card);
+			CardInfo info = ClientAPI.get().showCard(project, card);
 			if(info == null) {
-				System.err.println(card + ": " + clientApi.getMessage());
+				System.err.println(card + ": " + ClientAPI.get().getMessage());
 				continue;
 			}
-			CardLabel c = new CardLabel(projectName, info.name, info.description, clientApi);
+			CardLabel c = new CardLabel(projectName, info.name, info.description);
 			switch(info.list) {
 				case TODO:
 					todoArea.addCard(c);

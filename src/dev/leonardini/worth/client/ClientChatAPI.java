@@ -111,7 +111,7 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 		}
 	}
 	
-	public synchronized void send(SocketChannel socketChannel, String username, String message) {
+	public synchronized boolean send(SocketChannel socketChannel, String username, String message) {
 		if(reachableUsers.size() < onlineUsers.size()) {
 			System.out.println("There are users which are not reachable via multicast");
 			System.out.println("REACHABLE:");
@@ -124,6 +124,7 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 		} else {
 			sendMulticast(username, message);
 		}
+		return true;
 	}
 	
 	private void sendServer(SocketChannel socketChannel, String username, String message) {
@@ -194,15 +195,17 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 		}
 	}
 	
-	public synchronized void read(String project, ReceiveChatCallback callback) {
+	public synchronized boolean read(String project, ReceiveChatCallback callback) {
 		this.callback = callback;
 		this.project = project;
+		return true;
 	}
 	
-	public synchronized void stop() {
+	public synchronized boolean stop() {
 		this.callback = null;
 		this.project = null;
 		messagesHash.clear();
+		return true;
 	}
 	
 	public synchronized void cleanUp() {
@@ -247,6 +250,8 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 
 	@Override
 	public void receiveMessage(long timestamp, String project, String username, String message) throws RemoteException {
+		System.out.println("received normal");
+		
 		if(this.project == null) return;
 		if(!this.project.equals(project)) return;
 		String hash = messageHash(timestamp, project, username, message);
@@ -258,6 +263,8 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 
 	@Override
 	public void receiveSystem(long timestamp, String project, String card, String user, CardLocation from, CardLocation to) throws RemoteException {
+		System.out.println("received system");
+		
 		if(this.project == null) return;
 		if(!this.project.equals(project)) return;
 		String hash = messageHash(timestamp, project, card, user, from, to);

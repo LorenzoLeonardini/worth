@@ -32,7 +32,7 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 	private ChatMessage lastAdded = null;
 	private ProjectPanel projectPanel;
 
-	public ChatPanel(String username, String projectName, ProjectPanel projectPanel, ClientAPI clientApi) {
+	public ChatPanel(String username, String projectName, ProjectPanel projectPanel) {
 		this.my_username = username;
 		this.projectPanel = projectPanel;
 		SpringLayout layout = new SpringLayout();
@@ -62,7 +62,7 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 			public void keyTyped(KeyEvent e) {
 				if(e.getKeyChar() == KeyEvent.VK_ENTER) {
 					new Thread(() -> {
-						clientApi.sendChatMsg(projectName, input.getText());
+						ClientAPI.get().sendChatMsg(projectName, input.getText());
 						input.setText("");
 					}).start();
 				}

@@ -25,15 +25,13 @@ public class ProjectCreationDialog extends JDialog {
 
 	private static final long serialVersionUID = 5676070794513778122L;
 
-	private ClientAPI serverConnection;
 	private LoadingPanel loadingPanel = new LoadingPanel();
 	private JPanel mainPanel;
 	private JLabel errorMessage;
 	
 	private ProjectListPanel projectList;
 
-	public ProjectCreationDialog(ClientAPI serverConnection, ProjectListPanel projectList) {
-		this.serverConnection = serverConnection;
+	public ProjectCreationDialog(ProjectListPanel projectList) {
 		this.projectList = projectList;
 		setSize(300, 310);
 		setLocationRelativeTo(null);
@@ -101,11 +99,11 @@ public class ProjectCreationDialog extends JDialog {
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
-			if(serverConnection.createProject(projectName)) {
+			if(ClientAPI.get().createProject(projectName)) {
 				projectList.refresh();
 				dispose();
 			} else {
-				errorMessage.setText(serverConnection.getMessage());
+				errorMessage.setText(ClientAPI.get().getMessage());
 				errorMessage.setVisible(true);
 				setContentPane(mainPanel);
 				invalidate();

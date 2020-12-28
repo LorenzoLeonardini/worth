@@ -24,8 +24,6 @@ public class LoginScreen extends JFrame {
 	
 	private static final long serialVersionUID = -3152910977074804913L;
 
-	private ClientAPI serverConnection;
-	
 	private JPanel mainPanel;
 	private JPanel loadingPanel;
 	
@@ -51,8 +49,7 @@ public class LoginScreen extends JFrame {
 		repaint();
 	}
 	
-	public LoginScreen(ClientAPI serverConnection) {
-		this.serverConnection = serverConnection;
+	public LoginScreen() {
 		this.setSize(320, 455);
 		this.setLocationRelativeTo(null);
 		this.setTitle("WORkTogetHer - Login");
@@ -148,13 +145,13 @@ public class LoginScreen extends JFrame {
 	private void register() {
 		System.out.println("Registering...");
 		load(() -> {
-			serverConnection.estabilish(server.getText());
-			if (serverConnection.register(username.getText(), new String(password.getPassword()))) {
-				message.setText(serverConnection.getMessage());
+			ClientAPI.get().estabilish(server.getText());
+			if (ClientAPI.get().register(username.getText(), new String(password.getPassword()))) {
+				message.setText(ClientAPI.get().getMessage());
 			} else {
 				username.setBorder(redBorder);
 				password.setBorder(redBorder);
-				message.setText(serverConnection.getMessage());
+				message.setText(ClientAPI.get().getMessage());
 				message.setForeground(Color.red);
 			}
 			message.setVisible(true);
@@ -165,15 +162,15 @@ public class LoginScreen extends JFrame {
 	private void login() {
 		System.out.println("Logging in...");
 		load(() -> {
-			serverConnection.estabilish(server.getText());
-			if (serverConnection.login(username.getText(), new String(password.getPassword()))) {
-				MainScreen ms = new MainScreen(username.getText(), serverConnection);
+			ClientAPI.get().estabilish(server.getText());
+			if (ClientAPI.get().login(username.getText(), new String(password.getPassword()))) {
+				MainScreen ms = new MainScreen(username.getText());
 				ms.setVisible(true);
 				dispose();
 			} else {
 				username.setBorder(redBorder);
 				password.setBorder(redBorder);
-				message.setText(serverConnection.getMessage());
+				message.setText(ClientAPI.get().getMessage());
 				message.setForeground(Color.red);
 			}
 			message.setVisible(true);

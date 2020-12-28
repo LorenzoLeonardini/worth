@@ -21,10 +21,7 @@ public class SettingsDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
 
-	private ClientAPI serverConnection;
-
-	public SettingsDialog(ClientAPI serverConnection) {
-		this.serverConnection = serverConnection;
+	public SettingsDialog() {
 		setSize(300, 310);
 		setLocationRelativeTo(null);
 		setResizable(false);
@@ -78,7 +75,7 @@ public class SettingsDialog extends JDialog {
 	private void updatePic(String email) {
 		new Thread(() -> {
 			dispose();
-			serverConnection.updateProfilePicture(email);
+			ClientAPI.get().updateProfilePicture(email);
 		}).start();
 	}
 	

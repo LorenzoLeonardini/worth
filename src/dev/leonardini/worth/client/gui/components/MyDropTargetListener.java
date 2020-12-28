@@ -15,12 +15,10 @@ public class MyDropTargetListener extends DropTargetAdapter {
 
 	private final CardColumn panel;
 	private final String projectName;
-	private final ClientAPI clientApi;
 
-	public MyDropTargetListener(CardColumn panel, String projectName, ClientAPI clientApi) {
+	public MyDropTargetListener(CardColumn panel, String projectName) {
 		this.panel = panel;
 		this.projectName = projectName;
-		this.clientApi = clientApi;
 		new DropTarget(panel, DnDConstants.ACTION_MOVE, this, true, null);
 	}
 
@@ -32,8 +30,8 @@ public class MyDropTargetListener extends DropTargetAdapter {
 			if (event.isDataFlavorSupported(TransferableCard.getFlavor())) {
 				event.acceptDrop(DnDConstants.ACTION_MOVE);
 				
-				if(!clientApi.moveCard(projectName, card.cardName, ((CardColumn)card.getParent()).column_location, this.panel.column_location)) {
-					JOptionPane optionPane = new JOptionPane(clientApi.getMessage(), JOptionPane.ERROR_MESSAGE);    
+				if(!ClientAPI.get().moveCard(projectName, card.cardName, ((CardColumn)card.getParent()).column_location, this.panel.column_location)) {
+					JOptionPane optionPane = new JOptionPane(ClientAPI.get().getMessage(), JOptionPane.ERROR_MESSAGE);    
 					JDialog dialog = optionPane.createDialog("Errore");
 					dialog.setAlwaysOnTop(true);
 					dialog.setVisible(true);

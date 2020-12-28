@@ -1,5 +1,11 @@
 package dev.leonardini.worth.networking;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -84,6 +90,41 @@ public class NetworkUtils {
 		}
 		buffer.reset();
 		return finished;
+	}
+	
+	// https://stackoverflow.com/questions/2939218/getting-the-external-ip-address-in-java
+	public static String getExternalIp() {
+		try {
+			URL whatismyip = new URL("https://ipinfo.io/ip");
+			BufferedReader in = new BufferedReader(new InputStreamReader(whatismyip.openStream()));
+			return in.readLine();
+		} catch(Exception e) {
+			return "localhost";
+		}
+	}
+	
+	public static String getPrivateIp() {
+		try { // Trying the ip which connects to the internet
+			Socket s = new Socket("papillegustative.com", 80);
+			String ip = s.getLocalAddress().getHostAddress();
+			s.close();
+			return ip;
+		} catch(Exception e) {
+			try { // Trying the most common gateway
+				Socket s = new Socket("192.168.1.1", 80);
+				String ip = s.getLocalAddress().getHostAddress();
+				s.close();
+				return ip;
+			} catch(Exception e1) {
+			}
+		}
+		// If nothing works returns localhost (most commonly loopback)
+		try {
+			return InetAddress.getLocalHost().getHostAddress();
+		}
+		catch (UnknownHostException e) {
+			return "127.0.0.1";
+		}
 	}
 	
 }

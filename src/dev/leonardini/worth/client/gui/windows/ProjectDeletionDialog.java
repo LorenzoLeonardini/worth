@@ -25,14 +25,12 @@ public class ProjectDeletionDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
 
-	private ClientAPI serverConnection;
 	private JPanel loadingPanel = new LoadingPanel();
 	private JPanel panel;
 	private JLabel errorMessage;
 	private MainPanel mainPanel;
 	
-	public ProjectDeletionDialog(String projectName, ClientAPI serverConnection, MainPanel mainPanel) {
-		this.serverConnection = serverConnection;
+	public ProjectDeletionDialog(String projectName, MainPanel mainPanel) {
 		this.mainPanel = mainPanel;
 		setSize(300, 310);
 		setLocationRelativeTo(null);
@@ -100,11 +98,11 @@ public class ProjectDeletionDialog extends JDialog {
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
-			if(serverConnection.cancelProject(projectName, password)) {
+			if(ClientAPI.get().cancelProject(projectName, password)) {
 				mainPanel.backToProjectList();
 				dispose();
 			} else {
-				errorMessage.setText("<html><body style='text-align: center'>" + serverConnection.getMessage() + "</body></html>");
+				errorMessage.setText("<html><body style='text-align: center'>" + ClientAPI.get().getMessage() + "</body></html>");
 				errorMessage.setVisible(true);
 				setContentPane(panel);
 				invalidate();

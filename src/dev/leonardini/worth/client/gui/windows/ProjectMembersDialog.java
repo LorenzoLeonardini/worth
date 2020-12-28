@@ -30,7 +30,6 @@ public class ProjectMembersDialog extends JDialog {
 
 	private static final long serialVersionUID = 1155003498356191669L;
 
-	private ClientAPI serverConnection;
 	private JPanel panel;
 	private LoadingPanel loadingPanel = new LoadingPanel();
 	private int y_position = 60;
@@ -38,9 +37,8 @@ public class ProjectMembersDialog extends JDialog {
 	private JLabel errorMessage;
 	private JScrollPane scrollPane;
 
-	public ProjectMembersDialog(String projectName, ClientAPI serverConnection) {
+	public ProjectMembersDialog(String projectName) {
 		this.projectName = projectName;
-		this.serverConnection = serverConnection;
 		setSize(220, 400);
 		setLocationRelativeTo(null);
 		setResizable(false);
@@ -96,7 +94,7 @@ public class ProjectMembersDialog extends JDialog {
 		errorMessage.setVisible(false);
 		panel.add(errorMessage);
 		
-		List<String> members = serverConnection.showMembers(projectName);
+		List<String> members = ClientAPI.get().showMembers(projectName);
 		for(String member : members) {
 			displayUser(member);
 		}
@@ -127,10 +125,10 @@ public class ProjectMembersDialog extends JDialog {
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
-			if(serverConnection.addMember(projectName, username)) {
+			if(ClientAPI.get().addMember(projectName, username)) {
 				displayUser(username);
 			} else {
-				errorMessage.setText(serverConnection.getMessage());
+				errorMessage.setText(ClientAPI.get().getMessage());
 				errorMessage.setVisible(true);
 			}
 			scrollPane.setViewportView(panel);

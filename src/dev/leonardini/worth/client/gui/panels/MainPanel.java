@@ -31,11 +31,9 @@ public class MainPanel extends JPanel {
 	private JScrollPane projectList;
 	private JPanel projectListPanel;
 	
-	private ClientAPI clientApi;
 	private MainScreen mainScreen;
 	
-	public MainPanel(String username, ClientAPI clientApi, MainScreen mainScreen) {
-		this.clientApi = clientApi;
+	public MainPanel(String username, MainScreen mainScreen) {
 		this.mainScreen = mainScreen;
 		setLayout(null);
 		
@@ -54,13 +52,13 @@ public class MainPanel extends JPanel {
 		settings.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				JDialog f = new SettingsDialog(clientApi);
+				JDialog f = new SettingsDialog();
 				f.setVisible(true);
 			}
 		});
 		settings.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		
-		projectListPanel = new ProjectListPanel(this, clientApi);
+		projectListPanel = new ProjectListPanel(this);
 		projectList = new JScrollPane();
 		projectList.setViewportView(projectListPanel);
 		projectList.setAutoscrolls(true);
@@ -93,7 +91,7 @@ public class MainPanel extends JPanel {
 	}
 	
 	protected void openProject(String projectName) {
-		ProjectPanel projectPanel = new ProjectPanel(clientApi, projectName, this);
+		ProjectPanel projectPanel = new ProjectPanel(projectName, this);
 		projectList.setViewportView(projectPanel);
 		mainScreen.openChat(projectName, projectPanel);
 	}

@@ -29,15 +29,13 @@ public class ProjectListPanel extends JPanel {
 	
 	private static final long serialVersionUID = -6191694052010996354L;
 
-	private ClientAPI clientApi;
 	private SpringLayout layout;
 	private JLabel noProjects;
 	private Map<String, JLabel> projects = new HashMap<String, JLabel>();
 	private MainPanel mainPanel;
 	
-	public ProjectListPanel(MainPanel mainPanel, ClientAPI clientApi) {
+	public ProjectListPanel(MainPanel mainPanel) {
 		this.mainPanel = mainPanel;
-		this.clientApi = clientApi;
 		
 		layout = new SpringLayout();
 		setLayout(layout);
@@ -57,7 +55,7 @@ public class ProjectListPanel extends JPanel {
 		JButton newProject = new JButton("Nuovo");
 		newProject.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JDialog f = new ProjectCreationDialog(clientApi, _this);
+				JDialog f = new ProjectCreationDialog(_this);
 				f.setVisible(true);
 			}
 		});
@@ -98,7 +96,7 @@ public class ProjectListPanel extends JPanel {
 				remove(label);
 			}
 			projects.clear();
-			List<String> prs = clientApi.listProjects();
+			List<String> prs = ClientAPI.get().listProjects();
 			for(String p : prs) {
 				addProject(p);
 			}

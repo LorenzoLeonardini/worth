@@ -29,7 +29,7 @@ public class CardLabel extends JLabel implements Serializable {
 	
 	public final String cardName, description;
 
-	public CardLabel(String projectName, String cardName, String description, ClientAPI clientApi) {
+	public CardLabel(String projectName, String cardName, String description) {
 		this.cardName = cardName;
 		this.description = description;
 		setText("<html><body style='padding: 8px 4px; width: 100%'><div style='font-size: 1.1em; width: 100%'>" + cardName + "</div><div style='font-weight: normal; margin-top: 4px; font-size: 0.95em; width: 100%'>" + description + "</div></body></html>");
@@ -49,9 +49,9 @@ public class CardLabel extends JLabel implements Serializable {
 	        }
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				List<String> history = clientApi.getCardHistory(projectName, cardName);
+				List<String> history = ClientAPI.get().getCardHistory(projectName, cardName);
 				if(history == null) {
-					JOptionPane optionPane = new JOptionPane(clientApi.getMessage(), JOptionPane.ERROR_MESSAGE);    
+					JOptionPane optionPane = new JOptionPane(ClientAPI.get().getMessage(), JOptionPane.ERROR_MESSAGE);    
 					JDialog dialog = optionPane.createDialog("Errore");
 					dialog.setAlwaysOnTop(true);
 					dialog.setVisible(true);

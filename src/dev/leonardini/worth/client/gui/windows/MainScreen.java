@@ -31,7 +31,6 @@ public class MainScreen extends JFrame {
 	private JPanel noChat;
 	private String username;
 	private ChatPanel currentChat;
-	private ClientAPI serverConnection;
 	
 	private void addSeparator(JPanel panel, int gridx) {
 		JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
@@ -46,9 +45,8 @@ public class MainScreen extends JFrame {
         getContentPane().add(separator, gbc_separator);
 	}
 
-	public MainScreen(String username, ClientAPI serverConnection) {
+	public MainScreen(String username) {
 		this.username = username;
-		this.serverConnection = serverConnection;
 		this.setSize(1100, 630);
 		this.setLocationRelativeTo(null);
 		this.setTitle("WORkTogetHer");
@@ -61,8 +59,8 @@ public class MainScreen extends JFrame {
 		noChat.setPreferredSize(new Dimension(CHAT_SIZE, 10));
 		
 		UsersPanel usersPanel = new UsersPanel();
-		usersPanel.setUsers(serverConnection.listUsers());
-		serverConnection.registerUsersRMI(usersPanel);
+		usersPanel.setUsers(ClientAPI.get().listUsers());
+		ClientAPI.get().registerUsersRMI(usersPanel);
 		
 		JScrollPane scrollableUsers = new JScrollPane();
 		scrollableUsers.setViewportView(usersPanel);
@@ -70,7 +68,7 @@ public class MainScreen extends JFrame {
 		scrollableUsers.setBorder(BorderFactory.createEmptyBorder());
 		scrollableUsers.getVerticalScrollBar().setUnitIncrement(12);
 		scrollableUsers.setPreferredSize(new Dimension(USER_LIST_SIZE, 10));
-		JPanel centralPanel = new MainPanel(username, serverConnection, this);
+		JPanel centralPanel = new MainPanel(username, this);
 		
 		mainPanel.add(scrollableUsers,  new GridBagConstraints(0, 0, 1, 1, 0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
 		addSeparator(mainPanel, 1);
@@ -82,16 +80,16 @@ public class MainScreen extends JFrame {
 	
 	public void openChat(String projectName, ProjectPanel projectPanel) {
 		noChat.setVisible(false);
-		currentChat = new ChatPanel(username, projectName, projectPanel, serverConnection);
+		currentChat = new ChatPanel(username, projectName, projectPanel);
 		currentChat.setPreferredSize(new Dimension(CHAT_SIZE, 10));
 		mainPanel.add(currentChat,  new GridBagConstraints(4, 0, 1, 1, 0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
-		serverConnection.readChat(projectName, currentChat);
+		ClientAPI.get().readChat(projectName, currentChat);
 	}
 	
 	public void closeChat() {
 		noChat.setVisible(true);
 		mainPanel.remove(currentChat);
-		serverConnection.exitChat();
+		ClientAPI.get().exitChat();
 	}
 	
 }

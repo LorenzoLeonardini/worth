@@ -26,15 +26,13 @@ public class CardCreationDialog extends JDialog {
 
 	private static final long serialVersionUID = 5676070794513778122L;
 
-	private ClientAPI serverConnection;
 	private LoadingPanel loadingPanel = new LoadingPanel();
 	private JPanel mainPanel;
 	private JLabel errorMessage;
 	
 	private ProjectPanel projectPanel;
 
-	public CardCreationDialog(ClientAPI serverConnection, String projectName, ProjectPanel projectPanel) {
-		this.serverConnection = serverConnection;
+	public CardCreationDialog(String projectName, ProjectPanel projectPanel) {
 		this.projectPanel = projectPanel;
 		setSize(300, 410);
 		setLocationRelativeTo(null);
@@ -105,12 +103,12 @@ public class CardCreationDialog extends JDialog {
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
-			if(serverConnection.addCard(projectName, cardName, cardDescription)) {
-				projectPanel.addCard(new CardLabel(projectName, cardName, cardDescription, serverConnection));
+			if(ClientAPI.get().addCard(projectName, cardName, cardDescription)) {
+				projectPanel.addCard(new CardLabel(projectName, cardName, cardDescription));
 				projectPanel.updateUI();
 				dispose();
 			} else {
-				errorMessage.setText(serverConnection.getMessage());
+				errorMessage.setText(ClientAPI.get().getMessage());
 				errorMessage.setVisible(true);
 				setContentPane(mainPanel);
 				invalidate();

@@ -15,8 +15,7 @@ public class ClientMain {
 			e.printStackTrace();
 		}
 		
-		ClientAPI connection = new ClientAPI();
-		JFrame frame = new LoginScreen(connection);
+		JFrame frame = new LoginScreen();
 		frame.setVisible(true);
 	}
 	
