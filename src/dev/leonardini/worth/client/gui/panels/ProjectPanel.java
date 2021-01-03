@@ -54,11 +54,10 @@ public class ProjectPanel extends JPanel {
 		layout.putConstraint(SpringLayout.WEST, back, 6, SpringLayout.WEST, this);
 		add(back);
 
-		ProjectPanel _this = this;
 		JButton newCard = new JButton("Nuova card");
 		newCard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				JDialog f = new CardCreationDialog(project, _this);
+				JDialog f = new CardCreationDialog(project);
 				f.setVisible(true);
 			}
 		});
@@ -181,6 +180,7 @@ public class ProjectPanel extends JPanel {
 
 	public void addCard(CardLabel cardLabel) {
 		todoArea.addCard(cardLabel);
+		updateUI();
 	}
 	
 	private void addSeparator(JComponent left) {

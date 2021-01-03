@@ -7,7 +7,7 @@ import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 
 public class NoChatPanel extends JPanel {
 
@@ -20,7 +20,7 @@ public class NoChatPanel extends JPanel {
 		SpringLayout layout = new SpringLayout();
 		setLayout(layout);
 		title = new JLabel("Chat");
-		title.setFont(FontUtils.USERNAME_FONT);
+		title.setFont(GuiUtils.USERNAME_FONT);
 		title.setPreferredSize(new Dimension(100, 20));
 		add(title);
 		

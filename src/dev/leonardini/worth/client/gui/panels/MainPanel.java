@@ -13,9 +13,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 
-import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.AssetsManager;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.gui.windows.MainScreen;
 import dev.leonardini.worth.client.gui.windows.SettingsDialog;
@@ -38,11 +37,11 @@ public class MainPanel extends JPanel {
 		setLayout(null);
 		
 		title = new JLabel("WORkTogetHer");
-		title.setFont(FontUtils.MAIN_TITLE_FONT);
-		title.setForeground(FontUtils.COLOR);
+		title.setFont(GuiUtils.MAIN_TITLE_FONT);
+		title.setForeground(GuiUtils.COLOR);
 	
 		usernameLabel = new JLabel(username);
-		usernameLabel.setFont(FontUtils.USERNAME_FONT);
+		usernameLabel.setFont(GuiUtils.USERNAME_FONT);
 		usernameLabel.setVerticalAlignment(SwingConstants.CENTER);
 		usernameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
 		

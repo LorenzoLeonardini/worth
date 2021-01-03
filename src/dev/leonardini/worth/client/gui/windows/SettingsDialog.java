@@ -15,7 +15,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 
 public class SettingsDialog extends JDialog {
 
@@ -37,7 +37,7 @@ public class SettingsDialog extends JDialog {
 		}
 		
 		JLabel settings = new JLabel("Impostazioni");
-		settings.setFont(FontUtils.USERNAME_FONT);
+		settings.setFont(GuiUtils.USERNAME_FONT);
 		settings.setVerticalAlignment(SwingConstants.CENTER);
 		settings.setHorizontalAlignment(SwingConstants.CENTER);
 		settings.setBounds(0, 45, 300, 40);

@@ -1,6 +1,8 @@
 package dev.leonardini.worth.client.gui.components;
 
 import java.awt.Dimension;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,6 +32,13 @@ public class CardColumn extends JPanel {
 		layout.putConstraint(SpringLayout.SOUTH, titleLabel, 20, SpringLayout.NORTH, titleLabel);
 		layout.putConstraint(SpringLayout.EAST, titleLabel, -2, SpringLayout.EAST, this);
 		add(titleLabel);
+		
+		addComponentListener(new ComponentAdapter() {
+			@Override
+			public void componentResized(ComponentEvent e) {
+				reload();
+			}
+		});
 	}
 	
 	public void reload() {

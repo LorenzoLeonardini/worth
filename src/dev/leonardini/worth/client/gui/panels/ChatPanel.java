@@ -14,8 +14,10 @@ import javax.swing.SpringLayout;
 
 import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.ReceiveChatCallback;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
+import dev.leonardini.worth.client.gui.components.CardLabel;
 import dev.leonardini.worth.client.gui.components.ChatMessage;
+import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project.CardLocation;
 
 public class ChatPanel extends JPanel implements ReceiveChatCallback {
@@ -26,19 +28,20 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 	private JScrollPane scrollable;
 	private JPanel messages;
 	private SpringLayout messagesLayout;
-	private JTextArea input;
 	
 	private String my_username;
+	private String projectName;
 	private ChatMessage lastAdded = null;
 	private ProjectPanel projectPanel;
 
 	public ChatPanel(String username, String projectName, ProjectPanel projectPanel) {
 		this.my_username = username;
+		this.projectName = projectName;
 		this.projectPanel = projectPanel;
 		SpringLayout layout = new SpringLayout();
 		setLayout(layout);
 		title = new JLabel("Chat");
-		title.setFont(FontUtils.USERNAME_FONT);
+		title.setFont(GuiUtils.USERNAME_FONT);
 		title.setPreferredSize(new Dimension(100, 20));
 		add(title);
 		
@@ -54,7 +57,7 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 		scrollable.setPreferredSize(new Dimension(175, 10));
 		add(scrollable);
 		
-		input = new JTextArea();
+		JTextArea input = new JTextArea();
 		input.setPreferredSize(new Dimension(100, 60));
 		input.setBorder(BorderFactory.createLineBorder(Color.gray));
 		input.addKeyListener(new KeyAdapter() {
@@ -68,6 +71,8 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 				}
 			}
 		});
+		input.setLineWrap(true);
+		input.setWrapStyleWord(true);
 		add(input);
 		
 		layout.putConstraint(SpringLayout.NORTH, title, 5, SpringLayout.NORTH, this);
@@ -109,7 +114,7 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 		lastAdded = new_message;
 		
 		Dimension size = messages.getPreferredSize();
-		size.height += new_message.getPreferredSize().height + 5 + (icon ? 5 : -5);
+		size.height += new_message.getPreferredSize().height + 5 + (icon ? 5 : -7);
 		messages.setPreferredSize(size);
 		
 		scrollable.getVerticalScrollBar().setValue(scrollable.getVerticalScrollBar().getMaximum());
@@ -126,8 +131,14 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 
 	@Override
 	public void receivedSystemNotification(String user, String card, CardLocation from, CardLocation to) {
-		projectPanel.moveCard(card, from, to);
-		systemMessage(user + " ha spostato " + card + " in " + to);
+		if(from != null) {
+			projectPanel.moveCard(card, from, to);
+			systemMessage(user + " ha spostato " + card + " in " + to);
+		} else {
+			CardInfo info = ClientAPI.get().showCard(projectName, card);
+			projectPanel.addCard(new CardLabel(projectName, info.name, info.description));
+			systemMessage(user + " ha creato " + card);
+		}
 	}
 	
 }

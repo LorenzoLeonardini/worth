@@ -141,17 +141,14 @@ public class ServerMain {
 							} else {
 								session.ttl = 100;
 							}
-							
-							if(session.buffer.isFinished()) {
-								if(session.buffer.remaining() == 0) break;
-								session.current_operation = session.buffer.getOperation();
-								if(key.isValid())
-									key.interestOps(SelectionKey.OP_WRITE);
-							}
+
+							if(session.buffer.remaining() == 0) break;
+							session.current_operation = session.buffer.getOperation();
+							if(key.isValid())
+								key.interestOps(SelectionKey.OP_WRITE);
 						} else if(key.isWritable()) {
 							SocketChannel client = (SocketChannel) key.channel();
 							WorthBuffer buffer = handler.handle(key);
-							buffer.end();
 							buffer.write(client);
 							key.interestOps(SelectionKey.OP_READ);
 						} else {
@@ -292,7 +289,11 @@ public class ServerMain {
 			String cardDescription = session.buffer.getString();
 			String error = ProjectDB.addCard(projectName, cardName, cardDescription, session.username);
 			out.putBoolean(error == null);
-			if(error != null) {
+			if(error == null) {
+				new Thread(() -> {
+					sendChatNotification(projectName, cardName, session.username, null, CardLocation.TODO);
+				}).start();
+			} else {
 				out.putString(error);
 			}
 		}, ServerHandler.PROJECT_MEMBER);

@@ -17,7 +17,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 import dev.leonardini.worth.client.gui.panels.MainPanel;
 
@@ -47,7 +47,7 @@ public class ProjectDeletionDialog extends JDialog {
 		}
 		
 		JLabel confirmTitle = new JLabel("<html><body style='text-align:center'>Inserisci la password per confermare di voler eliminare il progetto</body></html>");
-		confirmTitle.setFont(FontUtils.USER_PANEL_TITLE_FONT);
+		confirmTitle.setFont(GuiUtils.USER_PANEL_TITLE_FONT);
 		confirmTitle.setVerticalAlignment(SwingConstants.CENTER);
 		confirmTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		confirmTitle.setBounds(0, 35, 300, 50);

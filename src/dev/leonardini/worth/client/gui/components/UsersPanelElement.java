@@ -4,7 +4,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 
 public class UsersPanelElement extends JPanel {
@@ -21,7 +21,7 @@ public class UsersPanelElement extends JPanel {
 		propic.setBounds(0, 0, PropicManager.SIZE, PropicManager.SIZE);
 		JLabel name = new JLabel(username);
 		name.setBounds(PropicManager.SIZE + 5, 0, 100, PropicManager.SIZE);
-		name.setFont(FontUtils.USER_PANEL_FONT);
+		name.setFont(GuiUtils.USER_PANEL_FONT);
 		name.setVerticalAlignment(SwingConstants.CENTER);
 		add(propic);
 		add(name);

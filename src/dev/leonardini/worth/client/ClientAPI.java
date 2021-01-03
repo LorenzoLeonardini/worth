@@ -202,7 +202,6 @@ public class ClientAPI implements UserUpdateCallback {
 		try {
 			WorthBuffer buffer = new WorthBuffer();
 			buffer.putOperation(Operation.LOGOUT);
-			buffer.end();
 			buffer.write(socketChannel);
 			socketChannel.close();
 			username = null;
@@ -553,6 +552,22 @@ public class ClientAPI implements UserUpdateCallback {
 		return serverCommunicationBoolean(op, write, (buffer) -> {return true;});
 	}
 	
+	private boolean busy = false;
+	
+	private synchronized void makeBusy() {
+		try {
+			while(busy) this.wait();
+			busy = true;
+		}
+		catch (InterruptedException e) {
+		}
+	}
+	
+	private synchronized void unbusy() {
+		busy = false;
+		this.notifyAll();
+	}
+	
 	/**
 	 * Helper function to make the code slimmer
 	 * 
@@ -562,8 +577,10 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @return outcome
 	 */
 	private boolean serverCommunicationBoolean(Operation op, BufferWrite write, BufferReadBool read) {
+		makeBusy();
 		if(socketChannel == null) {
 			info_message = "Nessuna connessione";
+			unbusy();
 			return false;
 		}
 		
@@ -572,10 +589,13 @@ public class ClientAPI implements UserUpdateCallback {
 		write.run(buffer);
 		
 		if(comm.send()) {
-			return read.run(buffer);
+			boolean ret = read.run(buffer);
+			unbusy();
+			return ret;
 		}
 		info_message = comm.getErrorMessage();
 		System.out.println(info_message);
+		unbusy();
 		return false;
 	}
 	
@@ -588,20 +608,25 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @return result or null in case of error
 	 */
 	private Object serverCommunicationObject(Operation op, BufferWrite write, BufferReadObj read) {
+		makeBusy();
 		if(socketChannel == null) {
 			info_message = "Nessuna connessione";
+			unbusy();
 			return null;
 		}
 		
 		ServerCommunication comm = new ServerCommunication(op, socketChannel);
 		WorthBuffer buffer = comm.getBuffer();
 		write.run(buffer);
-		
+
 		if(comm.send()) {
-			return read.run(buffer);
+			Object ret = read.run(buffer);
+			unbusy();
+			return ret;
 		}
 		info_message = comm.getErrorMessage();
 		System.out.println(info_message);
+		unbusy();
 		return null;
 	}
 	

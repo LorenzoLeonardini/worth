@@ -20,7 +20,7 @@ import javax.swing.SwingConstants;
 import javax.swing.TransferHandler;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.windows.CardHistoryDialog;
 
 public class CardLabel extends JLabel implements Serializable {
@@ -36,7 +36,7 @@ public class CardLabel extends JLabel implements Serializable {
 		setVerticalAlignment(SwingConstants.CENTER);
 		setHorizontalAlignment(SwingConstants.CENTER);
 		setOpaque(true);
-		setBackground(FontUtils.RANDOM_COLOR());
+		setBackground(GuiUtils.RANDOM_COLOR());
 		setBorder(BorderFactory.createLineBorder(Color.black));
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		setTransferHandler(new TransferHandler("card"));

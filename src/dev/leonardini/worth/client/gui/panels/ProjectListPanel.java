@@ -22,7 +22,7 @@ import javax.swing.SpringLayout;
 import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.windows.ProjectCreationDialog;
 
 public class ProjectListPanel extends JPanel {
@@ -122,7 +122,7 @@ public class ProjectListPanel extends JPanel {
 		project.setVerticalAlignment(SwingConstants.CENTER);
 		project.setHorizontalAlignment(SwingConstants.CENTER);
 		project.setBorder(BorderFactory.createLineBorder(Color.black));
-		project.setBackground(FontUtils.RANDOM_COLOR());
+		project.setBackground(GuiUtils.RANDOM_COLOR());
 		project.setOpaque(true);
 		project.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		project.addMouseListener(new MouseAdapter() {

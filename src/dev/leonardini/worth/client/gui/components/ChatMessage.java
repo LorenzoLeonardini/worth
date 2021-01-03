@@ -8,7 +8,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.gui.windows.MainScreen;
 
@@ -22,7 +22,7 @@ public class ChatMessage extends JPanel {
 	private JLabel text;
 	
 	public ChatMessage(String username, String message, boolean icon, boolean mine) {
-		message = message.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+		message = message.trim().replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br />");
 		this.username = username;
 		this.icon = icon;
 		setLayout(null);
@@ -35,7 +35,7 @@ public class ChatMessage extends JPanel {
 			propic.setBounds(mine ? MainScreen.CHAT_SIZE - PropicManager.SIZE - 27 : 0, height, PropicManager.SIZE, PropicManager.SIZE);
 			
 			JLabel usernameLabel = new JLabel(username);
-			usernameLabel.setFont(FontUtils.CHAT_USER_FONT);
+			usernameLabel.setFont(GuiUtils.CHAT_USER_FONT);
 			usernameLabel.setVerticalAlignment(SwingConstants.CENTER);
 			if(mine) {
 				usernameLabel.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -55,14 +55,14 @@ public class ChatMessage extends JPanel {
         text.setBorder(BorderFactory.createMatteBorder(icon ? 1 : 0, 1, 1, 1, Color.gray));
         text.setOpaque(true);
         text.setBackground(Color.white);
-        text.setFont(FontUtils.CHAT_FONT);
+        text.setFont(GuiUtils.CHAT_FONT);
         add(text);
         
         setPreferredSize(new Dimension(text.getWidth(), height));
 	}
 	
 	public ChatMessage(String message) {
-		message = message.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+		message = message.trim().replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 		this.username = "";
 		system = true;
 		
@@ -72,7 +72,7 @@ public class ChatMessage extends JPanel {
         
     	Dimension size = text.getPreferredSize();
     	text.setBounds(35, 0, size.width, size.height);
-        text.setFont(FontUtils.CHAT_SYSTEM_FONT);
+        text.setFont(GuiUtils.CHAT_SYSTEM_FONT);
         add(text);
         
         setPreferredSize(new Dimension(text.getWidth(), size.height));

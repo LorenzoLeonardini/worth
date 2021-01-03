@@ -11,7 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.UserUpdateCallback;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.gui.components.UsersPanelElement;
 
@@ -40,13 +40,13 @@ public class UsersPanel extends JPanel implements UserUpdateCallback {
 		repaint();
 		
 		offlineLabel = new JLabel("Utenti offline:");
-		offlineLabel.setFont(FontUtils.USER_PANEL_TITLE_FONT);
+		offlineLabel.setFont(GuiUtils.USER_PANEL_TITLE_FONT);
 		offlineLabel.setSize(150, 20);
 		offlineLabel.setVerticalAlignment(SwingConstants.CENTER);
 		add(offlineLabel);
 		
 		onlineLabel = new JLabel("Utenti online:");
-		onlineLabel.setFont(FontUtils.USER_PANEL_TITLE_FONT);
+		onlineLabel.setFont(GuiUtils.USER_PANEL_TITLE_FONT);
 		onlineLabel.setBounds(0, 0, 150, 20);
 		onlineLabel.setVerticalAlignment(SwingConstants.CENTER);
 		add(onlineLabel);

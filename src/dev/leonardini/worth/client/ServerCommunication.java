@@ -25,8 +25,6 @@ public class ServerCommunication {
 	
 	public boolean send() {
 		try {
-			buffer.end();
-			
 			buffer.write(socket);
 	
 			// Receive response

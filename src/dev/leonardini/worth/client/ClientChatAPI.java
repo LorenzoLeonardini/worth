@@ -55,13 +55,14 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 	
 	@Override
 	public void run() {
-		WorthBuffer buffer = new WorthBuffer();
+		WorthBuffer buffer = new WorthBuffer(65535); // overkill, but better safe than sorry
 		while(running) {
 			try {
 				buffer.clear();
 
 				DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.limit());
 				socket.receive(packet);
+				System.out.println(buffer);
 				
 				NetworkUtils.ChatOperation op = NetworkUtils.ChatOperation.values()[buffer.getInt()];
 				if(op == NetworkUtils.ChatOperation.MESSAGE) {
@@ -70,6 +71,7 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 					synchronized (this) {
 						String from = buffer.getString();
 						String message = buffer.getString();
+						System.out.println(from + " " + message);
 						receiveMessage(timestamp, forProject, from, message);
 					}
 				} else if(op == NetworkUtils.ChatOperation.SERVER) {

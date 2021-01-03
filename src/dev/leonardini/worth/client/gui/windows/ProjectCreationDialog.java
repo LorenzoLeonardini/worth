@@ -17,7 +17,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 import dev.leonardini.worth.client.gui.panels.ProjectListPanel;
 
@@ -48,7 +48,7 @@ public class ProjectCreationDialog extends JDialog {
 		}
 		
 		JLabel createTitle = new JLabel("Crea un nuovo progetto");
-		createTitle.setFont(FontUtils.USERNAME_FONT);
+		createTitle.setFont(GuiUtils.USERNAME_FONT);
 		createTitle.setVerticalAlignment(SwingConstants.CENTER);
 		createTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		createTitle.setBounds(0, 45, 300, 40);

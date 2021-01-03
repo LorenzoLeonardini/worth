@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Random;
 
-public abstract class FontUtils {
+public abstract class GuiUtils {
 
 	public static final Font USER_PANEL_TITLE_FONT = new Font("Arial", Font.BOLD, 15);
 	public static final Font USER_PANEL_FONT = new Font("Arial", Font.PLAIN, 13);

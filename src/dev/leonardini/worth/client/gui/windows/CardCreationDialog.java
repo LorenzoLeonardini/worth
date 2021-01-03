@@ -17,10 +17,8 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
-import dev.leonardini.worth.client.gui.assets.FontUtils;
-import dev.leonardini.worth.client.gui.components.CardLabel;
+import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
-import dev.leonardini.worth.client.gui.panels.ProjectPanel;
 
 public class CardCreationDialog extends JDialog {
 
@@ -29,11 +27,8 @@ public class CardCreationDialog extends JDialog {
 	private LoadingPanel loadingPanel = new LoadingPanel();
 	private JPanel mainPanel;
 	private JLabel errorMessage;
-	
-	private ProjectPanel projectPanel;
 
-	public CardCreationDialog(String projectName, ProjectPanel projectPanel) {
-		this.projectPanel = projectPanel;
+	public CardCreationDialog(String projectName) {
 		setSize(300, 410);
 		setLocationRelativeTo(null);
 		setResizable(false);
@@ -49,7 +44,7 @@ public class CardCreationDialog extends JDialog {
 		}
 		
 		JLabel createTitle = new JLabel("Crea una nuova card");
-		createTitle.setFont(FontUtils.USERNAME_FONT);
+		createTitle.setFont(GuiUtils.USERNAME_FONT);
 		createTitle.setVerticalAlignment(SwingConstants.CENTER);
 		createTitle.setHorizontalAlignment(SwingConstants.CENTER);
 		createTitle.setBounds(0, 45, 300, 40);
@@ -74,6 +69,8 @@ public class CardCreationDialog extends JDialog {
 		JTextArea cardDescription = new JTextArea();
 		cardDescription.setBounds(30, 180, 240, 80);
 		cardDescription.setBorder(BorderFactory.createLineBorder(Color.gray));
+		cardDescription.setLineWrap(true);
+		cardDescription.setWrapStyleWord(true);
 		mainPanel.add(cardDescription);
 		
 		errorMessage = new JLabel();
@@ -104,9 +101,9 @@ public class CardCreationDialog extends JDialog {
 		new Thread(() -> {
 			errorMessage.setVisible(false);
 			if(ClientAPI.get().addCard(projectName, cardName, cardDescription)) {
-				projectPanel.addCard(new CardLabel(projectName, cardName, cardDescription));
-				projectPanel.updateUI();
+				System.out.println("disposing");
 				dispose();
+				System.out.println("disposed");
 			} else {
 				errorMessage.setText(ClientAPI.get().getMessage());
 				errorMessage.setVisible(true);
