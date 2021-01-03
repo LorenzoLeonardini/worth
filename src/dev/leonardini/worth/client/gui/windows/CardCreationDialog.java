@@ -101,9 +101,7 @@ public class CardCreationDialog extends JDialog {
 		new Thread(() -> {
 			errorMessage.setVisible(false);
 			if(ClientAPI.get().addCard(projectName, cardName, cardDescription)) {
-				System.out.println("disposing");
 				dispose();
-				System.out.println("disposed");
 			} else {
 				errorMessage.setText(ClientAPI.get().getMessage());
 				errorMessage.setVisible(true);

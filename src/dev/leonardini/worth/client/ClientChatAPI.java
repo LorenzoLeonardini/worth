@@ -62,7 +62,6 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 
 				DatagramPacket packet = new DatagramPacket(buffer.array(), buffer.limit());
 				socket.receive(packet);
-				System.out.println(buffer);
 				
 				NetworkUtils.ChatOperation op = NetworkUtils.ChatOperation.values()[buffer.getInt()];
 				if(op == NetworkUtils.ChatOperation.MESSAGE) {
@@ -71,7 +70,6 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 					synchronized (this) {
 						String from = buffer.getString();
 						String message = buffer.getString();
-						System.out.println(from + " " + message);
 						receiveMessage(timestamp, forProject, from, message);
 					}
 				} else if(op == NetworkUtils.ChatOperation.SERVER) {
@@ -252,8 +250,6 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 
 	@Override
 	public void receiveMessage(long timestamp, String project, String username, String message) throws RemoteException {
-		System.out.println("received normal");
-		
 		if(this.project == null) return;
 		if(!this.project.equals(project)) return;
 		String hash = messageHash(timestamp, project, username, message);
@@ -265,8 +261,6 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 
 	@Override
 	public void receiveSystem(long timestamp, String project, String card, String user, CardLocation from, CardLocation to) throws RemoteException {
-		System.out.println("received system");
-		
 		if(this.project == null) return;
 		if(!this.project.equals(project)) return;
 		String hash = messageHash(timestamp, project, card, user, from, to);

@@ -161,7 +161,6 @@ public class WorthBuffer {
 	
 	public String getString() {
 		int length = buffer.getInt();
-		System.out.println(length);
 		char data[] = new char[length];
 		for(int i = 0; i < length; i++)
 			data[i] = buffer.getChar();
@@ -187,18 +186,13 @@ public class WorthBuffer {
 	}
 	
 	private void grow(int min_increment) {
-		System.out.println("Buffer is too small");
-		System.out.println("Old size " + buffer.capacity());
 		int min_size = buffer.position() + min_increment;
 		int new_size = buffer.capacity() * 2;
 		while(new_size < min_size) new_size *= 2;
 		ByteBuffer newBuffer = direct ? ByteBuffer.allocateDirect(new_size) : ByteBuffer.allocate(new_size);
 		newBuffer.put(buffer.array());
 		newBuffer.position(buffer.position());
-		System.out.println(buffer);
-		System.out.println(newBuffer);
 		buffer = newBuffer;
-		System.out.println("New size " + buffer.capacity());
 	}
 	
 	public int read(SocketChannel socket) throws IOException {

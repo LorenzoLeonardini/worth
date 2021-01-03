@@ -101,8 +101,6 @@ public class ProjectMembersDialog extends JDialog {
 	}
 	
 	private void displayUser(String username) {
-		System.out.println("adding");
-		
 		UsersPanelElement u = new UsersPanelElement(username);
 		u.setBounds(0, y_position, 150, PropicManager.SIZE);
 		y_position += PropicManager.SIZE + 5;

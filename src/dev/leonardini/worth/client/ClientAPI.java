@@ -94,6 +94,7 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @return outcome
 	 */
 	public boolean estabilish(String host) {
+		makeBusy();
 		// Cleanup TCP connection
 		if(this.host == null || !this.host.equalsIgnoreCase(host)) {
 			if(socketChannel != null) {
@@ -107,6 +108,7 @@ public class ClientAPI implements UserUpdateCallback {
 			}
 			socketChannel = null;
 		}
+		unbusy();
 		
 		this.host = host;
 		
@@ -157,14 +159,16 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @return outcome
 	 */
 	public boolean login(String username, String password) {
+		makeBusy();
 		// Init TCP connection
 		try {
 			if(socketChannel == null)
 				socketChannel = SocketChannel.open(new InetSocketAddress(host, NetworkUtils.SERVER_PORT));
-		}
-		catch (IOException e) {
+			unbusy();
+		} catch (IOException e) {
 			info_message = "Errore di connessione";
 			e.printStackTrace();
+			unbusy();
 			return false;
 		}
 		
@@ -199,15 +203,18 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @return outcome
 	 */
 	private boolean logout() {
+		makeBusy();
 		try {
 			WorthBuffer buffer = new WorthBuffer();
 			buffer.putOperation(Operation.LOGOUT);
 			buffer.write(socketChannel);
 			socketChannel.close();
 			username = null;
+			unbusy();
 			return true;
 		} catch(IOException e) {
 			info_message = e.getMessage();
+			unbusy();
 			return false;
 		}
 	}
@@ -329,6 +336,42 @@ public class ClientAPI implements UserUpdateCallback {
 		});
 	}
 	
+	/**
+	 * Add a user as a member of a project
+	 * 
+	 * @param projectName
+	 * @param username the user to add
+	 * @return outcome
+	 */
+	public boolean addMember(String projectName, String username) {
+		return serverCommunicationBoolean(Operation.ADD_MEMBER,
+		(buffer) -> { // send
+			buffer.putString(projectName);
+			buffer.putString(username);
+		});
+	}
+
+	@SuppressWarnings("unchecked")
+	/**
+	 * Query the server for a list of all the members of a project
+	 * 
+	 * @param projectName
+	 * @return a list of strings defining the users, null in case of error
+	 */
+	public List<String> showMembers(String projectName) {
+		return (List<String>) serverCommunicationObject(Operation.SHOW_MEMBERS,
+		(buffer) -> { // send
+			buffer.putString(projectName);
+		}, (buffer) -> { // receive
+			int amount = buffer.getInt();
+			List<String> members = new ArrayList<String>(amount);
+			for(int i = 0; i < amount; i++) {
+				members.add(buffer.getString());
+			}
+			return members;
+		});
+	}
+	
 	@SuppressWarnings("unchecked")
 	/**
 	 * Query the server for all the cards in a project
@@ -405,59 +448,6 @@ public class ClientAPI implements UserUpdateCallback {
 		});
 	}
 	
-	/**
-	 * Try to delete a project. Note that all cards must be in the "done" list in
-	 * order to do that
-	 * 
-	 * @param projectName
-	 * @param password
-	 * 
-	 * @return outcome
-	 */
-	public boolean cancelProject(String projectName, String password) {
-		return serverCommunicationBoolean(Operation.DELETE_PROJECT,
-		(buffer) -> { // send
-			buffer.putString(projectName);
-			buffer.putString(password);
-		});
-	}
-
-	@SuppressWarnings("unchecked")
-	/**
-	 * Query the server for a list of all the members of a project
-	 * 
-	 * @param projectName
-	 * @return a list of strings defining the users, null in case of error
-	 */
-	public List<String> showMembers(String projectName) {
-		return (List<String>) serverCommunicationObject(Operation.SHOW_MEMBERS,
-		(buffer) -> { // send
-			buffer.putString(projectName);
-		}, (buffer) -> { // receive
-			int amount = buffer.getInt();
-			List<String> members = new ArrayList<String>(amount);
-			for(int i = 0; i < amount; i++) {
-				members.add(buffer.getString());
-			}
-			return members;
-		});
-	}
-	
-	/**
-	 * Add a user as a member of a project
-	 * 
-	 * @param projectName
-	 * @param username the user to add
-	 * @return outcome
-	 */
-	public boolean addMember(String projectName, String username) {
-		return serverCommunicationBoolean(Operation.ADD_MEMBER,
-		(buffer) -> { // send
-			buffer.putString(projectName);
-			buffer.putString(username);
-		});
-	}
-	
 	@SuppressWarnings("unchecked")
 	/**
 	 * Query the server for a project card's history
@@ -482,6 +472,23 @@ public class ClientAPI implements UserUpdateCallback {
 				history.add(date + user + " ha spostato la card in " + location);
 			}
 			return history;
+		});
+	}
+	
+	/**
+	 * Try to delete a project. Note that all cards must be in the "done" list in
+	 * order to do that
+	 * 
+	 * @param projectName
+	 * @param password
+	 * 
+	 * @return outcome
+	 */
+	public boolean cancelProject(String projectName, String password) {
+		return serverCommunicationBoolean(Operation.DELETE_PROJECT,
+		(buffer) -> { // send
+			buffer.putString(projectName);
+			buffer.putString(password);
 		});
 	}
 	
