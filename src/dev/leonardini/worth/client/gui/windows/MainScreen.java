@@ -20,6 +20,9 @@ import dev.leonardini.worth.client.gui.panels.NoChatPanel;
 import dev.leonardini.worth.client.gui.panels.ProjectPanel;
 import dev.leonardini.worth.client.gui.panels.UsersPanel;
 
+/**
+ * The main client window, opened after a successfull login
+ */
 public class MainScreen extends JFrame {
 
 	private static final long serialVersionUID = 613339661340118082L;
@@ -31,20 +34,10 @@ public class MainScreen extends JFrame {
 	private JPanel noChat;
 	private String username;
 	private ChatPanel currentChat;
-	
-	private void addSeparator(JPanel panel, int gridx) {
-		JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
-        separator.setPreferredSize(new Dimension(1, 1));
-        separator.setForeground(Color.gray);
-        GridBagConstraints gbc_separator = new GridBagConstraints();
-        gbc_separator.insets = new Insets(0, 0, 0, 0);
-        gbc_separator.gridx = gridx;
-        gbc_separator.gridy = 0;
-        gbc_separator.fill = GridBagConstraints.VERTICAL;
-        gbc_separator.weighty = 1;
-        getContentPane().add(separator, gbc_separator);
-	}
 
+	/**
+	 * @param username
+	 */
 	public MainScreen(String username) {
 		this.username = username;
 		this.setSize(1100, 630);
@@ -78,18 +71,45 @@ public class MainScreen extends JFrame {
 		this.setVisible(true);
 	}
 	
+	/**
+	 * Dispose of the "Open a project to see chat" message and display a chat panel.
+	 * @param projectName
+	 * @param projectPanel
+	 */
 	public void openChat(String projectName, ProjectPanel projectPanel) {
 		noChat.setVisible(false);
 		currentChat = new ChatPanel(username, projectName, projectPanel);
 		currentChat.setPreferredSize(new Dimension(CHAT_SIZE, 10));
 		mainPanel.add(currentChat,  new GridBagConstraints(4, 0, 1, 1, 0, 1.0, GridBagConstraints.WEST, GridBagConstraints.BOTH, new Insets(0, 0, 0, 0), 0, 0));
+		// register the chat panel as a callback for clientapi
 		ClientAPI.get().readChat(projectName, currentChat);
 	}
-	
+
+	/**
+	 * Close the chat column and tell the ClientAPI to stop listening to messages
+	 */
 	public void closeChat() {
 		noChat.setVisible(true);
 		mainPanel.remove(currentChat);
 		ClientAPI.get().exitChat();
+	}
+	
+	/**
+	 * Handy function to add a separator between to columns
+	 * @param panel
+	 * @param gridx
+	 */
+	private void addSeparator(JPanel panel, int gridx) {
+		JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
+        separator.setPreferredSize(new Dimension(1, 1));
+        separator.setForeground(Color.gray);
+        GridBagConstraints gbc_separator = new GridBagConstraints();
+        gbc_separator.insets = new Insets(0, 0, 0, 0);
+        gbc_separator.gridx = gridx;
+        gbc_separator.gridy = 0;
+        gbc_separator.fill = GridBagConstraints.VERTICAL;
+        gbc_separator.weighty = 1;
+        getContentPane().add(separator, gbc_separator);
 	}
 	
 }

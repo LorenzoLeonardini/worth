@@ -7,6 +7,9 @@ import javax.swing.SwingConstants;
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 
+/**
+ * Component representing a user in the "users list" column
+ */
 public class UsersPanelElement extends JPanel {
 
 	private static final long serialVersionUID = -4534260090855783841L;
@@ -14,6 +17,11 @@ public class UsersPanelElement extends JPanel {
 	private JLabel propic;
 	private String username;
 
+	/**
+	 * Initiate the object
+	 * 
+	 * @param username
+	 */
 	public UsersPanelElement(String username) {
 		this.username = username;
 		setLayout(null);
@@ -27,8 +35,15 @@ public class UsersPanelElement extends JPanel {
 		add(name);
 	}
 	
+	/**
+	 * Call this method when the user update their propic. This will reload it
+	 * and refresh the component
+	 */
 	public void updatePic() {
 		propic.setIcon(PropicManager.get(username).getIcon());
+		invalidate();
+		validate();
+		repaint();
 	}
 			
 }

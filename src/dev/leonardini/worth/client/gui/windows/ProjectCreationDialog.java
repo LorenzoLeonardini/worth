@@ -21,6 +21,9 @@ import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 import dev.leonardini.worth.client.gui.panels.ProjectListPanel;
 
+/**
+ * Popup window used to create a project
+ */
 public class ProjectCreationDialog extends JDialog {
 
 	private static final long serialVersionUID = 5676070794513778122L;
@@ -31,6 +34,9 @@ public class ProjectCreationDialog extends JDialog {
 	
 	private ProjectListPanel projectList;
 
+	/**
+	 * @param projectList this is used to refresh the project list after creating the project
+	 */
 	public ProjectCreationDialog(ProjectListPanel projectList) {
 		this.projectList = projectList;
 		setSize(300, 310);
@@ -92,6 +98,10 @@ public class ProjectCreationDialog extends JDialog {
 		mainPanel.add(save);
 	}
 	
+	/**
+	 * Ask the server to create a new project
+	 * @param projectName
+	 */
 	private void createProject(String projectName) {
 		setContentPane(loadingPanel);
 		invalidate();

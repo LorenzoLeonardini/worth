@@ -23,15 +23,29 @@ import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.windows.CardHistoryDialog;
 
+/**
+ * This component represents a card in the CardColumn component
+ * 
+ * It handles part of the dragging and movement of a card
+ */
 public class CardLabel extends JLabel implements Serializable {
 
 	private static final long serialVersionUID = 3169641733663285333L;
 	
 	public final String cardName, description;
 
+	/**
+	 * Initiate the object
+	 * 
+	 * @param projectName the project this card is part of
+	 * @param cardName the card name
+	 * @param description the card description
+	 */
 	public CardLabel(String projectName, String cardName, String description) {
 		this.cardName = cardName;
 		this.description = description;
+		
+		// Basic rendering 
 		setText("<html><body style='padding: 8px 4px; width: 100%'><div style='font-size: 1.1em; width: 100%'>" + cardName + "</div><div style='font-weight: normal; margin-top: 4px; font-size: 0.95em; width: 100%'>" + description + "</div></body></html>");
 		setVerticalAlignment(SwingConstants.CENTER);
 		setHorizontalAlignment(SwingConstants.CENTER);
@@ -39,6 +53,9 @@ public class CardLabel extends JLabel implements Serializable {
 		setBackground(GuiUtils.RANDOM_COLOR());
 		setBorder(BorderFactory.createLineBorder(Color.black));
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		
+		// Drag n drop implementation
+		// credits to http://zetcode.com/javaswing/draganddrop/
 		setTransferHandler(new TransferHandler("card"));
 		addMouseListener(new MouseAdapter() {
 			@Override
@@ -48,6 +65,7 @@ public class CardLabel extends JLabel implements Serializable {
 	            handler.exportAsDrag(c, e, TransferHandler.COPY);
 	        }
 			@Override
+			// When clicking on a card, a popup appears with its history
 			public void mouseClicked(MouseEvent e) {
 				List<String> history = ClientAPI.get().getCardHistory(projectName, cardName);
 				if(history == null) {

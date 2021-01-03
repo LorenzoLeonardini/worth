@@ -11,6 +11,11 @@ import javax.swing.JOptionPane;
 
 import dev.leonardini.worth.client.ClientAPI;
 
+/**
+ * DropTargetAdaptor used for the drag and drop of cards
+ *
+ * See http://zetcode.com/javaswing/draganddrop/ for more info
+ */
 public class MyDropTargetListener extends DropTargetAdapter {
 
 	private final CardColumn panel;
@@ -22,6 +27,11 @@ public class MyDropTargetListener extends DropTargetAdapter {
 		new DropTarget(panel, DnDConstants.ACTION_MOVE, this, true, null);
 	}
 
+	/**
+	 * When a card is dropped into another column, a request to move the card is sent to the server
+	 * The card won't be moved. The server will send a system message informing of the movement, the
+	 * chat manager will take care of that.
+	 */
 	public void drop(DropTargetDropEvent event) {
 		try {
 			Transferable tr = event.getTransferable();

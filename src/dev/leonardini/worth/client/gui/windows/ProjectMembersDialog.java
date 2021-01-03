@@ -26,6 +26,13 @@ import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.gui.components.UsersPanelElement;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 
+/**
+ * This window displays all the members of a project and allows to
+ * add a new member to that project.
+ * 
+ * Note that if someone else is updating the members at the same time,
+ * this view doesn't get updated.
+ */
 public class ProjectMembersDialog extends JDialog {
 
 	private static final long serialVersionUID = 1155003498356191669L;
@@ -37,6 +44,10 @@ public class ProjectMembersDialog extends JDialog {
 	private JLabel errorMessage;
 	private JScrollPane scrollPane;
 
+	/**
+	 * Init the object
+	 * @param projectName the project of which we want to know the members
+	 */
 	public ProjectMembersDialog(String projectName) {
 		this.projectName = projectName;
 		setSize(220, 400);
@@ -94,6 +105,10 @@ public class ProjectMembersDialog extends JDialog {
 		errorMessage.setVisible(false);
 		panel.add(errorMessage);
 		
+		// Retrieves the project members from the server.
+		// This shouldn't generate any error, because this window should only
+		// be opened for projects you are a member of and therefore you have the
+		// correct permissions to perform this action.
 		List<String> members = ClientAPI.get().showMembers(projectName);
 		for(String member : members) {
 			displayUser(member);
@@ -116,6 +131,11 @@ public class ProjectMembersDialog extends JDialog {
 			panel.setPreferredSize(new Dimension(200, y_position));
 	}
 	
+	/**
+	 * Send the server a request to add a member to this project
+	 * 
+	 * @param username
+	 */
 	private void addMember(String username) {
 		scrollPane.setViewportView(loadingPanel);
 		invalidate();

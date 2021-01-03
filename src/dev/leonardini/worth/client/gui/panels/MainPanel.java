@@ -19,6 +19,12 @@ import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.gui.windows.MainScreen;
 import dev.leonardini.worth.client.gui.windows.SettingsDialog;
 
+/**
+ * The main panel of the main window. Contains a small header with the
+ * product name, username, propic and settings button.
+ * 
+ * Displays the current view (project list, project)
+ */
 public class MainPanel extends JPanel {
 
 	private static final long serialVersionUID = 1131461282211603252L;

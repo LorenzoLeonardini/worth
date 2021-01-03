@@ -8,11 +8,18 @@ import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+/**
+ * Popup window used to display the history of a card
+ */
 public class CardHistoryDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
 
 	@SuppressWarnings("unchecked")
+	/**
+	 * Display the history inside the parameter list
+	 * @param history
+	 */
 	public CardHistoryDialog(List<String> history) {
 		setSize(600, 400);
 		setLocationRelativeTo(null);

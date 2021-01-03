@@ -20,6 +20,9 @@ import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 
+/**
+ * Popup window used to create a card in a project
+ */
 public class CardCreationDialog extends JDialog {
 
 	private static final long serialVersionUID = 5676070794513778122L;
@@ -28,6 +31,11 @@ public class CardCreationDialog extends JDialog {
 	private JPanel mainPanel;
 	private JLabel errorMessage;
 
+	/**
+	 * Initiate the object
+	 * 
+	 * @param projectName the project this card will be added to
+	 */
 	public CardCreationDialog(String projectName) {
 		setSize(300, 410);
 		setLocationRelativeTo(null);

@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Random;
 
+/**
+ * Abstract class used to manage fonts and colors 
+ */
 public abstract class GuiUtils {
 
 	public static final Font USER_PANEL_TITLE_FONT = new Font("Arial", Font.BOLD, 15);

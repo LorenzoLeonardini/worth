@@ -20,6 +20,13 @@ import dev.leonardini.worth.client.gui.components.ChatMessage;
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project.CardLocation;
 
+/**
+ * Component representing the chat panel on the right.
+ * This is linked to a specific project and needs to be recreated
+ * when the project changes.
+ * 
+ * It works in conjunction with ClientAPI to get the messages related to that project.
+ */
 public class ChatPanel extends JPanel implements ReceiveChatCallback {
 
 	private static final long serialVersionUID = 1317326421983834032L;
@@ -34,6 +41,15 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 	private ChatMessage lastAdded = null;
 	private ProjectPanel projectPanel;
 
+	/**
+	 * Initiate the object. Note that this doesn't say to ClientAPI to start getting the
+	 * messages, it will need to be done.
+	 * 
+	 * @param username my username, used to send messages
+	 * @param projectName the project to which this is connected
+	 * @param projectPanel the current ProjectPanel object. Needed to update cards 
+	 * 			when receiving system messages
+	 */
 	public ChatPanel(String username, String projectName, ProjectPanel projectPanel) {
 		this.my_username = username;
 		this.projectName = projectName;
@@ -89,7 +105,12 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 		layout.putConstraint(SpringLayout.EAST, input, -6, SpringLayout.EAST, this);
 	}
 	
-	public void addMessage(String username, String message) {
+	/**
+	 * Add a standard chat message to this panel
+	 * @param username sender
+	 * @param message
+	 */
+	private void addMessage(String username, String message) {
 		boolean icon = lastAdded == null || !lastAdded.username.equalsIgnoreCase(username);
 		if(!icon) lastAdded.removeBottomBorder();
 		boolean me = username.equalsIgnoreCase(my_username);
@@ -98,11 +119,20 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 		appendMessage(new_message, icon);
 	}
 	
-	public void systemMessage(String message) {
+	/**
+	 * Add a system message
+	 * @param message
+	 */
+	private void systemMessage(String message) {
 		ChatMessage new_message = new ChatMessage(message);
 		appendMessage(new_message, true);
 	}
 	
+	/**
+	 * Actually display and setup the layout for the newly added ChatMessage
+	 * @param new_message
+	 * @param icon
+	 */
 	private void appendMessage(ChatMessage new_message, boolean icon) {
 		if(lastAdded == null)
 			messagesLayout.putConstraint(SpringLayout.NORTH, new_message, 5, SpringLayout.NORTH, messages);
@@ -131,6 +161,7 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 
 	@Override
 	public void receivedSystemNotification(String user, String card, CardLocation from, CardLocation to) {
+		// When the 'from' CardLocation is null, it means that the card has just been created, and not moved
 		if(from != null) {
 			projectPanel.moveCard(card, from, to);
 			systemMessage(user + " ha spostato " + card + " in " + to);

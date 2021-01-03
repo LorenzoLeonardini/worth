@@ -21,6 +21,12 @@ import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 import dev.leonardini.worth.client.gui.panels.MainPanel;
 
+/**
+ * Confirmation window for the action of deleting a project.
+ * 
+ * The user will be asked their password for security reasons in
+ * order to be able to delete the project.
+ */
 public class ProjectDeletionDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
@@ -30,6 +36,12 @@ public class ProjectDeletionDialog extends JDialog {
 	private JLabel errorMessage;
 	private MainPanel mainPanel;
 	
+	/**
+	 * Initiate the object
+	 * @param projectName the project we want to delete
+	 * @param mainPanel MainPanel instance. This is where the user will be redirected to
+	 * 			after the deletion
+	 */
 	public ProjectDeletionDialog(String projectName, MainPanel mainPanel) {
 		this.mainPanel = mainPanel;
 		setSize(300, 310);
@@ -91,6 +103,11 @@ public class ProjectDeletionDialog extends JDialog {
 		getContentPane().add(delete);
 	}
 	
+	/**
+	 * Send the server the delete request
+	 * @param projectName
+	 * @param password
+	 */
 	private void deleteProject(String projectName, String password) {
 		setContentPane(loadingPanel);
 		invalidate();

@@ -30,6 +30,11 @@ import dev.leonardini.worth.client.gui.windows.ProjectMembersDialog;
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.data.Project.CardLocation;
 
+/**
+ * Main panel for a project view.
+ * 
+ * Manages all the cards, columns and actions related to a project
+ */
 public class ProjectPanel extends JPanel {
 	
 	private static final long serialVersionUID = 3204062925071718780L;
@@ -38,6 +43,11 @@ public class ProjectPanel extends JPanel {
 	private CardColumn todoArea, inprogressArea, toberevisedArea, doneArea;
 	private String projectName;
 
+	/**
+	 * Initiate the object
+	 * @param project the name of the project
+	 * @param mainPanel used in order to go back to the main panel when exiting the project view
+	 */
 	public ProjectPanel(String project, MainPanel mainPanel) {
 		this.projectName = project;
 		layout = new SpringLayout();
@@ -137,28 +147,19 @@ public class ProjectPanel extends JPanel {
 		layout.putConstraint(SpringLayout.EAST, doneScroll, -6, SpringLayout.EAST, this);
 		add(doneScroll);
 		
+		// Ask the server for all the cards of this project
 		List<String> cards = ClientAPI.get().showCards(project);
 		for(String card : cards) {
+			// Ask the server for the info related to this card
 			CardInfo info = ClientAPI.get().showCard(project, card);
 			if(info == null) {
 				System.err.println(card + ": " + ClientAPI.get().getMessage());
 				continue;
 			}
 			CardLabel c = new CardLabel(projectName, info.name, info.description);
-			switch(info.list) {
-				case TODO:
-					todoArea.addCard(c);
-					break;
-				case IN_PROGRESS:
-					inprogressArea.addCard(c);
-					break;
-				case TO_BE_REVISED:
-					toberevisedArea.addCard(c);
-					break;
-				case DONE:
-					doneArea.addCard(c);
-					break;
-			}
+			
+			// Add the card to the proper column
+			locationToColumn(info.list).addCard(c);
 		}
 		
 		addComponentListener(new ComponentAdapter() {
@@ -178,6 +179,10 @@ public class ProjectPanel extends JPanel {
 		return scroll;
 	}
 
+	/**
+	 * Add a new card to the "todo" column
+	 * @param cardLabel
+	 */
 	public void addCard(CardLabel cardLabel) {
 		todoArea.addCard(cardLabel);
 		updateUI();
@@ -202,6 +207,14 @@ public class ProjectPanel extends JPanel {
 		updateUI();
 	}
 	
+	/**
+	 * Move a card from a column to the other. If this is not possible (like if the card
+	 * does not exist in the 'from' column), an error message is displayed.
+	 * 
+	 * @param card
+	 * @param from
+	 * @param to
+	 */
 	protected void moveCard(String card, CardLocation from, CardLocation to) {
 		try {
 			locationToColumn(to).addCard(locationToColumn(from).removeCard(card));

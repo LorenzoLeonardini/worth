@@ -9,6 +9,10 @@ import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
 
+/**
+ * Simple panel displaying a message telling the user to open a project
+ * in order to chat
+ */
 public class NoChatPanel extends JPanel {
 
 	private static final long serialVersionUID = -2422038220952298377L;

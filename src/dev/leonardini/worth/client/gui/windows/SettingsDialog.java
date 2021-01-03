@@ -17,6 +17,9 @@ import javax.swing.UnsupportedLookAndFeelException;
 import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
 
+/**
+ * Settings window used to set the Gravatar email address
+ */
 public class SettingsDialog extends JDialog {
 
 	private static final long serialVersionUID = 6378209988325009361L;
@@ -75,6 +78,8 @@ public class SettingsDialog extends JDialog {
 	private void updatePic(String email) {
 		new Thread(() -> {
 			dispose();
+			// This shouldn't really give any error, since the only requirement is
+			// that the user is logged (and this window can be displayed only after logging in)
 			ClientAPI.get().updateProfilePicture(email);
 		}).start();
 	}

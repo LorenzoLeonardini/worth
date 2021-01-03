@@ -4,6 +4,12 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 
+/**
+ * Implementation of a Transferable object used for the Drag and Drop of
+ * cards.
+ * 
+ * See http://zetcode.com/javaswing/draganddrop/ for more info
+ */
 public class TransferableCard implements Transferable {
 	private static DataFlavor cardFlavor;
 	private final CardLabel card;

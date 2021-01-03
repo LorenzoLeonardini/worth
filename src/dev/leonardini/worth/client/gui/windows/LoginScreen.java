@@ -20,6 +20,9 @@ import javax.swing.border.Border;
 import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.panels.LoadingPanel;
 
+/**
+ * The first window a user sees, used to register and login to the service
+ */
 public class LoginScreen extends JFrame {
 	
 	private static final long serialVersionUID = -3152910977074804913L;
@@ -34,20 +37,6 @@ public class LoginScreen extends JFrame {
 	private Color messageColor;
 	private Border fieldBorder;
 	private Border redBorder;
-	
-	private void switchToMain() {
-		this.setContentPane(mainPanel);
-		invalidate();
-		validate();
-		repaint();
-	}
-	
-	private void switchToLoading() {
-		this.setContentPane(loadingPanel);
-		invalidate();
-		validate();
-		repaint();
-	}
 	
 	public LoginScreen() {
 		this.setSize(320, 455);
@@ -178,6 +167,10 @@ public class LoginScreen extends JFrame {
 		});
 	}
 	
+	/**
+	 * Helper function for the display of the loading animation during the server communication
+	 * @param runnable
+	 */
 	private void load(Runnable runnable) {
 		switchToLoading();
 		username.setBorder(fieldBorder);
@@ -185,6 +178,26 @@ public class LoginScreen extends JFrame {
 		message.setVisible(false);
 		message.setForeground(messageColor);
 		new Thread(runnable).start();
+	}
+	
+	/**
+	 * Go back to the main view to display an output message
+	 */
+	private void switchToMain() {
+		this.setContentPane(mainPanel);
+		invalidate();
+		validate();
+		repaint();
+	}
+	
+	/**
+	 * Remove the main view and display a loading animation during the server communication
+	 */
+	private void switchToLoading() {
+		this.setContentPane(loadingPanel);
+		invalidate();
+		validate();
+		repaint();
 	}
 
 }

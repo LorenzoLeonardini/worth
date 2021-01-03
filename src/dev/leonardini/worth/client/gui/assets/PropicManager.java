@@ -11,7 +11,13 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
-public class PropicManager {
+/**
+ * This class manages user propics. It allows to load them from Gravatar and retrieve
+ * them at any moment without the need of downloading them again.
+ * 
+ * Note that images are not cached locally, and this class requires an Internet conenction
+ */
+public abstract class PropicManager {
 
 	private static Map<String, ImageIcon> Images = new HashMap<String, ImageIcon>();
 	
@@ -19,6 +25,12 @@ public class PropicManager {
 	
 	public static final int SIZE = 30;
 	
+	/**
+	 * Load and save the propic linked to a user.
+	 * 
+	 * @param username the user to which the propic is linked to
+	 * @param key the gravatar key (i.e. the email hash) associated to the pic
+	 */
 	public static void addPropic(String username, String key) {
 		try {
 		    ImageIcon ii = getImage(key);
@@ -28,6 +40,11 @@ public class PropicManager {
 		}
 	}
 	
+	/**
+	 * Get the propic of a user.
+	 * @param username
+	 * @return a JLabel object using the propic as ImageIcon
+	 */
 	public static JLabel get(String username) {
 		if(Images.containsKey(username))
 			return new JLabel(Images.get(username));

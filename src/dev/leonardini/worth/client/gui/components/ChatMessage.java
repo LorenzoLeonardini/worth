@@ -12,6 +12,9 @@ import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.gui.windows.MainScreen;
 
+/**
+ * A component representing a chat message in the chat view.
+ */
 public class ChatMessage extends JPanel {
 
 	private static final long serialVersionUID = -8733742095087484567L;
@@ -21,6 +24,17 @@ public class ChatMessage extends JPanel {
 	
 	private JLabel text;
 	
+	/**
+	 * Initiate the object. This constructor is used for user messages
+	 * 
+	 * @param username the user who sent the message
+	 * @param message the content of the message
+	 * @param icon when this is set to true, before the message a "header" is displayed, 
+	 * 			containing the username and propic of the sender. Generally this is set to false
+	 * 			from the second message sent from the user, to "group" the chat
+	 * @param mine when this is set to true, the message is displayed on the right side instead of the
+	 * 			left side. Used for messages sent by "me"
+	 */
 	public ChatMessage(String username, String message, boolean icon, boolean mine) {
 		message = message.trim().replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\n", "<br />");
 		this.username = username;
@@ -61,6 +75,11 @@ public class ChatMessage extends JPanel {
         setPreferredSize(new Dimension(text.getWidth(), height));
 	}
 	
+	/**
+	 * Initiate the object. This constructor is used for system messages
+	 * 
+	 * @param message the content of the message
+	 */
 	public ChatMessage(String message) {
 		message = message.trim().replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 		this.username = "";
@@ -78,6 +97,9 @@ public class ChatMessage extends JPanel {
         setPreferredSize(new Dimension(text.getWidth(), size.height));
 	}
 	
+	/**
+	 * Remove the border from the bottom side. Used when grouping messages
+	 */
 	public void removeBottomBorder() {
 		if(system) return;
 		text.setBorder(BorderFactory.createMatteBorder(icon ? 1 : 0, 1, 0, 1, Color.gray));

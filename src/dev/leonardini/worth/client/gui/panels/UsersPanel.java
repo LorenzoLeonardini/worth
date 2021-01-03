@@ -15,6 +15,14 @@ import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.gui.components.UsersPanelElement;
 
+/**
+ * This is the left column displaying all the users, with their status
+ * (i.e. online, offline)
+ * 
+ * This implements the UserUpdateCallback in order to receive user updates from
+ * the server. However, the callback is not registered directly, this needs to be
+ * done manually.
+ */
 public class UsersPanel extends JPanel implements UserUpdateCallback {
 
 	private static final long serialVersionUID = -2888416411224027971L;
@@ -34,10 +42,6 @@ public class UsersPanel extends JPanel implements UserUpdateCallback {
 		});
 		setLayout(null);
 		setVisible(true);
-		
-		invalidate();
-		validate();
-		repaint();
 		
 		offlineLabel = new JLabel("Utenti offline:");
 		offlineLabel.setFont(GuiUtils.USER_PANEL_TITLE_FONT);
@@ -76,11 +80,11 @@ public class UsersPanel extends JPanel implements UserUpdateCallback {
 			setPreferredSize(new Dimension(150, y));
 	}
 	
-	public void setOffline(String username) {
+	private void setOffline(String username) {
 		updateStructure(username, online_users, offline_users);
 	}
 	
-	public void setOnline(String username) {
+	private void setOnline(String username) {
 		updateStructure(username, offline_users, online_users);
 	}
 	

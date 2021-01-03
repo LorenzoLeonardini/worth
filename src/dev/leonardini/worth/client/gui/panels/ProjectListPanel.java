@@ -25,6 +25,9 @@ import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.windows.ProjectCreationDialog;
 
+/**
+ * The panel displaying all the project the user is a member of
+ */
 public class ProjectListPanel extends JPanel {
 	
 	private static final long serialVersionUID = -6191694052010996354L;

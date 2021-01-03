@@ -6,7 +6,10 @@ import java.net.URL;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-public class AssetsManager {
+/**
+ * Abstract class used to manage assets and images
+ */
+public abstract class AssetsManager {
 
 	public final static URL LOADING_IMAGE = AssetsManager.class.getResource("loading.gif");
 	public final static ImageIcon COG = load("cog.png");

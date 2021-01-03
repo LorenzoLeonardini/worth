@@ -13,6 +13,9 @@ import javax.swing.SwingConstants;
 
 import dev.leonardini.worth.client.gui.assets.AssetsManager;
 
+/**
+ * Simple panel displaying a loading animation
+ */
 public class LoadingPanel extends JPanel {
 
 	private static final long serialVersionUID = -6294564042217993485L;
