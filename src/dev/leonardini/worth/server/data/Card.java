@@ -1,4 +1,4 @@
-package dev.leonardini.worth.data;
+package dev.leonardini.worth.server.data;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,8 +9,15 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.leonardini.worth.data.Project.CardLocation;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 
+/**
+ * A card object in the server database. Contains general information about the
+ * card and its history. Does not contain information about its current position
+ * (even if it can be retrieved by the history)
+ * 
+ * This object is mainly just a container for data
+ */
 public class Card implements Serializable {
 
 	private static final long serialVersionUID = 5197429374757398688L;
@@ -20,16 +27,34 @@ public class Card implements Serializable {
 	
 	private List<HistoryEntry> history = new ArrayList<HistoryEntry>();
 	
-	public Card(String name, String description, String by) {
+	/**
+	 * Initialize a card. Specify its name, its description and the user
+	 * who created it.
+	 * @param name
+	 * @param description
+	 * @param user
+	 */
+	public Card(String name, String description, String user) {
 		this.name = name;
 		this.description = description;
-		history.add(new HistoryEntry(CardLocation.TODO, by, System.currentTimeMillis()));
+		history.add(new HistoryEntry(CardLocation.TODO, user, System.currentTimeMillis()));
 	}
 	
+	/**
+	 * Call this method when the card gets moved in order to update its history
+	 * @param where
+	 * @param by
+	 */
 	public void moved(CardLocation where, String by) {
 		history.add(new HistoryEntry(where, by, System.currentTimeMillis()));
 	}
 	
+	/**
+	 * Load a Card object from a serialized file
+	 * @param projectName
+	 * @param cardName
+	 * @return
+	 */
 	protected static Card loadFromFile(String projectName, String cardName) {
 		String filepath = "projects/" + toFileName(projectName) + "/" + toFileName(cardName);
 		try {
@@ -39,12 +64,16 @@ public class Card implements Serializable {
 			in.close();
 			fis.close();
 			return c;
-		}catch (Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return new Card(projectName, "ERROR", "system");
 	}
 	
+	/**
+	 * Serialize this card to a file
+	 * @param projectName
+	 */
 	protected void saveToFile(String projectName) {
 		String filepath = "projects/" + toFileName(projectName) + "/" + toFileName(this.name);
 		new File("projects/" + toFileName(projectName) + "/").mkdirs();

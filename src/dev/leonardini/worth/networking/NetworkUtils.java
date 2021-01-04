@@ -6,8 +6,9 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.channels.SocketChannel;
 
-public class NetworkUtils {
+public abstract class NetworkUtils {
 	
 	public static final int SERVER_PORT = 4000;
 	public static final int REGISTRY_PORT = 4001;
@@ -51,7 +52,15 @@ public class NetworkUtils {
 		}
 	}
 	
-	public static String getPrivateIp() {
+	/**
+	 * Get the client IP. Works with various attempts.
+	 * @param channel
+	 * @return ip address
+	 */
+	public static String getInternalIp(SocketChannel channel) {
+		if(channel != null) { // If possible, get the ip address from the server connection
+			return channel.socket().getLocalAddress().getHostAddress();
+		}
 		try { // Trying the ip which connects to the internet
 			Socket s = new Socket("papillegustative.com", 80);
 			String ip = s.getLocalAddress().getHostAddress();

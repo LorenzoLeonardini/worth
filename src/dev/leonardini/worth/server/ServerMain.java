@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 
-import dev.leonardini.worth.data.Card.HistoryEntry;
 import dev.leonardini.worth.data.CardInfo;
-import dev.leonardini.worth.data.Project;
-import dev.leonardini.worth.data.Project.CardLocation;
 import dev.leonardini.worth.networking.NetworkUtils;
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
+import dev.leonardini.worth.server.data.Project;
+import dev.leonardini.worth.server.data.Card.HistoryEntry;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 import dev.leonardini.worth.networking.WorthBuffer;
 
 public class ServerMain {
@@ -90,7 +90,7 @@ public class ServerMain {
 	}
 	
 	private void run() {
-		ServerHandler handler = new ServerHandler();
+		ServerHandlerManager handler = new ServerHandlerManager();
 		registerHandlers(handler);
 		
 		serverChannel = null;
@@ -169,7 +169,7 @@ public class ServerMain {
 		}
 	}
 	
-	private void registerHandlers(ServerHandler handler) {
+	private void registerHandlers(ServerHandlerManager handler) {
 		handler.addHandler(Operation.LOGIN, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String username = session.buffer.getString();
 			String password = session.buffer.getString();
@@ -189,12 +189,12 @@ public class ServerMain {
 			} else {
 				out.putString("Credenziali invalide");
 			}
-		}, ServerHandler.NONE);
+		}, ServerHandlerManager.NONE);
 		
 		handler.addHandler(Operation.CHANGE_PROPIC, (Session session, SelectionKey key, WorthBuffer out) -> {
 			userManager.updateProfilePicture(session.username, session.buffer.getString());
 			out.putBoolean(true);
-		}, ServerHandler.LOGGED);
+		}, ServerHandlerManager.LOGGED);
 		
 		handler.addHandler(Operation.CREATE_PROJECT, (Session session, SelectionKey key, WorthBuffer out) -> {
 			boolean outcome = ProjectDB.createProject(session.buffer.getString(), session.username);
@@ -202,7 +202,7 @@ public class ServerMain {
 			if(!outcome) {
 				out.putString("Progetto già esistente");
 			}
-		}, ServerHandler.LOGGED);
+		}, ServerHandlerManager.LOGGED);
 		
 		handler.addHandler(Operation.LOGOUT, (Session session, SelectionKey key, WorthBuffer out) -> {
 			if(session.logged) {
@@ -213,7 +213,7 @@ public class ServerMain {
 				key.channel().close();
 			}
 			catch (IOException e) {}				
-		}, ServerHandler.NONE);
+		}, ServerHandlerManager.NONE);
 		
 		handler.addHandler(Operation.SHOW_MEMBERS, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -223,7 +223,7 @@ public class ServerMain {
 			for(String member : members) {
 				out.putString(member);
 			}
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.ADD_MEMBER, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -241,7 +241,7 @@ public class ServerMain {
 			}
 			ProjectDB.addMember(projectName, user);
 			out.putBoolean(true);
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.SHOW_CARDS, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -251,7 +251,7 @@ public class ServerMain {
 			for(String card : cards) {
 				out.putString(card);
 			}
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.SHOW_CARD, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -264,7 +264,7 @@ public class ServerMain {
 				out.putString(info.description);
 				out.putInt(info.list.ordinal());
 			}
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.GET_CARD_HISTORY, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -281,7 +281,7 @@ public class ServerMain {
 					out.putInt(e.location.ordinal());
 				}
 			}
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.ADD_CARD, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -296,7 +296,7 @@ public class ServerMain {
 			} else {
 				out.putString(error);
 			}
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.MOVE_CARD, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -312,7 +312,7 @@ public class ServerMain {
 				out.putBoolean(false);
 				out.putString(e.getMessage());
 			}
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.DELETE_PROJECT, (Session session, SelectionKey key, WorthBuffer out) -> {
 			String projectName = session.buffer.getString();
@@ -330,7 +330,7 @@ public class ServerMain {
 				out.putBoolean(false);
 				out.putString(e.getMessage());
 			}
-		}, ServerHandler.PROJECT_MEMBER);
+		}, ServerHandlerManager.PROJECT_MEMBER);
 		
 		handler.addHandler(Operation.CHAT, (Session session, SelectionKey key, WorthBuffer out) -> {
 			session.buffer.getInt();
@@ -339,9 +339,14 @@ public class ServerMain {
 			String username = session.buffer.getString();
 			String text = session.buffer.getString();
 			
-			RMIServer.chatForwarder.send(timestamp, projectName, username, text);
+			try {
+				RMIServer.chatForwarder.send(timestamp, projectName, username, text);
+			}
+			catch (RemoteException e) {
+				e.printStackTrace();
+			}
 			out.putBoolean(true);
-		}, ServerHandler.LOGGED);
+		}, ServerHandlerManager.LOGGED);
 		
 		handler.addHandler(Operation.LIST_PROJECTS, (Session session, SelectionKey key, WorthBuffer out) -> {
 			out.putBoolean(true);
@@ -350,7 +355,7 @@ public class ServerMain {
 			for(Project p : projects) {
 				out.putString(p.getName());
 			}
-		}, ServerHandler.LOGGED);
+		}, ServerHandlerManager.LOGGED);
 	}
 	
 	private void sendChatNotification(String projectName, String card, String user, CardLocation from, CardLocation to) {

@@ -12,11 +12,24 @@ import dev.leonardini.worth.networking.UserRegistration;
 import dev.leonardini.worth.server.networking.ChatForwarder;
 import dev.leonardini.worth.server.networking.UsersChangeNotifier;
 
-public class RMIServer {
+/**
+ * This abstract class is responsible for initializing all the RMI server endpoints.
+ * 
+ * Gives the possibility to retrieve UsersChangeNotifier and ChatForwarder objects.
+ */
+public abstract class RMIServer {
 	
-	public static UsersChangeNotifier notifyUsersChange;
-	public static ChatForwarder chatForwarder;
+	public final static UsersChangeNotifier notifyUsersChange = new UsersChangeNotifier();
+	public final static ChatForwarder chatForwarder = new ChatForwarder();
 	
+	/**
+	 * Initialize the RMIServer. Call this function as soon as possible.
+	 * 
+	 * Since the UserManager is not responsibility of the RMI server, it needs to get passed
+	 * as a parameter
+	 * 
+	 * @param userManager
+	 */
 	public static void init(UserManager userManager) {
 		try {
 			LocateRegistry.createRegistry(NetworkUtils.REGISTRY_PORT);
@@ -39,13 +52,11 @@ public class RMIServer {
 	}
 	
 	private static void initNotifier(Registry r) throws RemoteException {
-		notifyUsersChange = new UsersChangeNotifier(); 
 		NotifyUsersChange stub = (NotifyUsersChange) UnicastRemoteObject.exportObject(notifyUsersChange, 0);
 		r.rebind(NetworkUtils.USER_STATUS_NOTIFICATION, stub);
 	}
 	
 	private static void initChatFallback(Registry r) throws RemoteException {
-		chatForwarder = new ChatForwarder(); 
 		ChatFallbackRegistration stub = (ChatFallbackRegistration) UnicastRemoteObject.exportObject(chatForwarder, 0);
 		r.rebind(NetworkUtils.CHAT_FALLBACK, stub);
 	}

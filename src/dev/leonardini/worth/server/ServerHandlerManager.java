@@ -9,27 +9,56 @@ import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.WorthBuffer;
 import dev.leonardini.worth.server.ServerMain.Session;
 
-public class ServerHandler {
+/**
+ * Handles incoming communications from clients. Register a handler for a specific operation
+ * code and call `handle` when a selection key is readable.
+ * 
+ * The registered handler is responsible for reading data from the client and writing to a
+ * WorthBuffer which will need to be sent.
+ * 
+ * This handler manager allows to specify requirements for each operation. Does the client need
+ * to be logged? Do they need to be members of a project? These checks will be performed here
+ */
+public class ServerHandlerManager {
 
-	private Map<Operation, OperationServerHandler> handlers = new HashMap<Operation, OperationServerHandler>();
+	private Map<Operation, ServerHandler> handlers = new HashMap<Operation, ServerHandler>();
 	private Map<Operation, Integer> requirements = new HashMap<Operation, Integer>();
+	
+	// Requirement definition
 	public static final int NONE = 0;
 	public static final int LOGGED = 1;
 	private static final int MEMBER = 2;
 	public static final int PROJECT_MEMBER = LOGGED | MEMBER;
 	
-	public void addHandler(Operation op, OperationServerHandler handler, int requirements) {
+	/**
+	 * Register a handler for a specific operation. Note that handlers are unique and registering
+	 * another handler for the same operation will overwrite the original handler.
+	 * @param op
+	 * @param handler
+	 * @param requirements
+	 */
+	public void addHandler(Operation op, ServerHandler handler, int requirements) {
 		handlers.put(op, handler);
 		this.requirements.put(op, requirements);
 	}
 	
+	/**
+	 * Call this function when the client is ready to be sent data.
+	 * A proper handler will be called according to the operation code.
+	 * 
+	 * @param key
+	 * @return the WorthBuffer to send back to the user
+	 */
 	public WorthBuffer handle(SelectionKey key) {
+		// Get some data and initialize some objects
 		Session session = (Session) key.attachment();
 		Operation op = session.current_operation;
 		int requirements = this.requirements.get(op);
 		WorthBuffer out = new WorthBuffer();
 		out.putOperation(session.current_operation);
 		
+		// If the requirements need the user to be logged,
+		// verify that
 		if((requirements & LOGGED) > 0) {
 			if(!session.logged) {
 				out.putBoolean(false);
@@ -37,6 +66,8 @@ public class ServerHandler {
 				return out;
 			}
 		}
+		// If the requirements need the user to be part of the given project,
+		// verify that. This relies on the defined protocol for worth communications
 		if((requirements & MEMBER) > 0) {
 			session.buffer.mark();
 			String projectName = session.buffer.getString();
@@ -60,7 +91,7 @@ public class ServerHandler {
 	}
 	
 	@FunctionalInterface
-	public static interface OperationServerHandler {
+	public static interface ServerHandler {
 		public void handle(Session session, SelectionKey key, WorthBuffer out);
 	}
 	

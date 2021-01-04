@@ -5,6 +5,12 @@ import java.nio.channels.SocketChannel;
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.WorthBuffer;
 
+/**
+ * This is a helper class used to simplify the process of communicating with the server
+ * The main method is the send function, which is responsible for sending the buffer to
+ * the server, get the response, analyze the response to verify the operation code and
+ * the outcome status
+ */
 public class ServerCommunication {
 
 	private Operation op;
@@ -12,6 +18,12 @@ public class ServerCommunication {
 	private SocketChannel socket;
 	private String errorMessage;
 	
+	/**
+	 * Initialize a server communication for a specific operation and on a
+	 * specific socket
+	 * @param op
+	 * @param socket
+	 */
 	public ServerCommunication(Operation op, SocketChannel socket) {
 		this.op = op;
 		this.socket = socket;
@@ -23,6 +35,11 @@ public class ServerCommunication {
 		return this.buffer;
 	}
 	
+	/**
+	 * Send the buffer to the server, check the response for the proper
+	 * op code.
+	 * @return the status code
+	 */
 	public boolean send() {
 		try {
 			buffer.write(socket);

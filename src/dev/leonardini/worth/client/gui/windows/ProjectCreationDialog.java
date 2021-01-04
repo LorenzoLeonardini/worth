@@ -13,8 +13,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
@@ -43,15 +41,9 @@ public class ProjectCreationDialog extends JDialog {
 		setLocationRelativeTo(null);
 		setResizable(false);
 		setTitle("Crea progetto");
+		setAlwaysOnTop(true);
 		mainPanel = (JPanel) getContentPane();
 		mainPanel.setLayout(null);
-		
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
 		
 		JLabel createTitle = new JLabel("Crea un nuovo progetto");
 		createTitle.setFont(GuiUtils.USERNAME_FONT);

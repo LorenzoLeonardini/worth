@@ -28,7 +28,7 @@ import dev.leonardini.worth.client.gui.windows.CardCreationDialog;
 import dev.leonardini.worth.client.gui.windows.ProjectDeletionDialog;
 import dev.leonardini.worth.client.gui.windows.ProjectMembersDialog;
 import dev.leonardini.worth.data.CardInfo;
-import dev.leonardini.worth.data.Project.CardLocation;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 
 /**
  * Main panel for a project view.

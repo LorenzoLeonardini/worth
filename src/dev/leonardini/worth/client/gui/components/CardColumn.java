@@ -10,7 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import dev.leonardini.worth.data.Project.CardLocation;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 
 /**
  * This component represents a column of cards in the project view

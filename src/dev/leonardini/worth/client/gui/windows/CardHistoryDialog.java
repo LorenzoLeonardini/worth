@@ -5,8 +5,6 @@ import java.util.List;
 import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 /**
  * Popup window used to display the history of a card
@@ -24,6 +22,7 @@ public class CardHistoryDialog extends JDialog {
 		setSize(600, 400);
 		setLocationRelativeTo(null);
 		setResizable(false);
+		setAlwaysOnTop(true);
 		getContentPane().setLayout(null);
 		setTitle("Storia della card");
 
@@ -35,13 +34,6 @@ public class CardHistoryDialog extends JDialog {
 		scrollPane.setViewportView(historyList);
 		scrollPane.setBounds(30, 30, 540, 300);
 		getContentPane().add(scrollPane);
-		
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
 	}
 	
 }

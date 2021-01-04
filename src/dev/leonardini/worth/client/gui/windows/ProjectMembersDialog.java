@@ -18,8 +18,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
@@ -57,13 +55,6 @@ public class ProjectMembersDialog extends JDialog {
 		setAlwaysOnTop(true);
 		panel = new JPanel();
 		panel.setLayout(null);
-		
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
 		
 		scrollPane = new JScrollPane();
 		scrollPane.setViewportView(panel);

@@ -1,4 +1,4 @@
-package dev.leonardini.worth.data;
+package dev.leonardini.worth.server.data;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,8 +11,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import dev.leonardini.worth.data.Card.HistoryEntry;
+import dev.leonardini.worth.data.CardInfo;
+import dev.leonardini.worth.server.data.Card.HistoryEntry;
 
+/**
+ * A project object in the server database. Create and manage a project and its cards.
+ */
 public class Project implements Serializable {
 
 	private static final long serialVersionUID = -4418794667789728106L;
@@ -25,15 +29,22 @@ public class Project implements Serializable {
 	private Map<String, Card> to_be_revised;
 	private Map<String, Card> done;
 
+	/**
+	 * Create a project
+	 * @param name
+	 * @param creator the user who created it. Will be added to the member list
+	 */
 	public Project(String name, String creator) {
 		this.name = name;
 		this.members = new HashSet<String>();
 		this.members.add(creator);
+		
 		this.todo = new HashMap<String, Card>();
 		this.in_progress = new HashMap<String, Card>();
 		this.to_be_revised = new HashMap<String, Card>();
 		this.done = new HashMap<String, Card>();
 		
+		// Add default welcome card
 		try {
 			addCard(new Card("Welcome", "Trascina una card da una colonna all'altra", "system"));
 		} catch(Exception e) {}
@@ -42,14 +53,21 @@ public class Project implements Serializable {
 	// Custom serialization process. Cards are saved separately to files
 	@SuppressWarnings("unchecked")
 	private void writeObject(ObjectOutputStream oos) throws IOException {
+		// Save basic data
 		oos.writeObject(name);
 		oos.writeBoolean(deleted);
 		oos.writeObject(members);
+		
+		// Compute an array of lists, containing the cards of the project,
+		// dividing them per location
 		List<String> cards[] = new List[4];
 		for(CardLocation l : CardLocation.values()) {
 			cards[l.ordinal()] = new ArrayList<String>();
-			for(String c : locationToList(l).keySet()) {
-				cards[l.ordinal()].add(c);
+			for(Card c : locationToList(l).values()) {
+				// save card
+				c.saveToFile(name);
+				// add card name to list
+				cards[l.ordinal()].add(c.name);
 			}
 		}
 		oos.writeObject(cards);
@@ -58,14 +76,18 @@ public class Project implements Serializable {
 	// Custom serialization process. Cards are read separately from files
 	@SuppressWarnings("unchecked")
 	private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+		// Get basic data
 		this.name = (String) ois.readObject();
 		this.deleted = ois.readBoolean();
 		this.members = (Set<String>) ois.readObject();
+		
+		// Init card lists
 		this.todo = new HashMap<String, Card>();
 		this.in_progress = new HashMap<String, Card>();
 		this.to_be_revised = new HashMap<String, Card>();
 		this.done = new HashMap<String, Card>();
 		
+		// Load cards and add them to the lists
 		List<String> cards[] = (List[]) ois.readObject();
 		for(CardLocation l : CardLocation.values()) {
 			for(String c : cards[l.ordinal()]) {
@@ -74,11 +96,25 @@ public class Project implements Serializable {
 		}
 	}
 	
-	public List<String> getMemebers() {
+	public synchronized List<String> getMemebers() {
 		return new ArrayList<String>(this.members);
 	}
 	
-	public void moveCard(String name, CardLocation src, CardLocation dest, String who) throws InvalidCardException, InvalidCardMovementException {
+	/**
+	 * Move a card form a location to another
+	 * 
+	 * @param name the card to move
+	 * @param src
+	 * @param dest
+	 * @param who the user who moved the card. Needed to update card history
+	 * 
+	 * @throws InvalidCardException when the card does not exist in the src list
+	 * @throws InvalidCardMovementException either when movement constraints are not respected or when
+	 * 			project has been deleted and is therefore "blocked"
+	 */
+	public synchronized void moveCard(String name, CardLocation src, CardLocation dest, String who) throws InvalidCardException, InvalidCardMovementException {
+		if(deleted)
+			throw new InvalidCardMovementException("Progetto eliminato");
 		if(name == null || src == null || dest == null)
 			throw new NullPointerException();
 		Card c;
@@ -105,63 +141,69 @@ public class Project implements Serializable {
 		return null;
 	}
 	
-	public void addCard(Card c) throws Exception {
-		if(c == null)
+	/**
+	 * Add a new card to the project. Card is automatically put into the todo list
+	 * 
+	 * @param card
+	 * @throws Exception either when project has been deleted or when a card with the same
+	 * 			name already exists
+	 */
+	public synchronized void addCard(Card card) throws Exception {
+		if(deleted)
+			throw new Exception("Progetto eliminato");
+		if(card == null)
 			throw new NullPointerException();
-		String fileName = Card.toFileName(c.name);
+		String fileName = Card.toFileName(card.name);
 		if(todo.containsKey(fileName) || in_progress.containsKey(fileName) 
 				|| to_be_revised.containsKey(fileName) || done.containsKey(fileName)) {
 			throw new Exception("Esiste già una card con questo nome");
 		}
-		todo.put(fileName, c);
+		todo.put(fileName, card);
 	}
 	
-	public void addMember(String username) {
+	/**
+	 * Add a user to the member list. Checks for the correctness of the username
+	 * must be done somewhere else.
+	 * 
+	 * @param username
+	 */
+	public synchronized void addMember(String username) {
 		if(username == null)
 			throw new NullPointerException();
-		if(members.contains(username)) return;
 		members.add(username);
 	}
 	
-	public String getName() {
+	public synchronized String getName() {
 		return name;
 	}
 	
-	public boolean isDeleted() {
+	public synchronized boolean isDeleted() {
 		return deleted;
 	}
 	
-	public void delete() throws ProjectUndeletableException {
+	/**
+	 * Cancel a project. In order to be able to do that, all the cards must be in the "done" list
+	 * 
+	 * @throws ProjectUndeletableException when some cards are in some other list
+	 */
+	public synchronized void delete() throws ProjectUndeletableException {
 		if(todo.size() > 0 || in_progress.size() > 0 || to_be_revised.size() > 0)
 			throw new ProjectUndeletableException("Tutte le card devono essere nella lista 'done'");
 		deleted = true;
 	}
 	
-	public List<String> getMembers() {
+	public synchronized List<String> getMembers() {
 		return new ArrayList<String>(members);
 	}
 	
-	public boolean isMember(String user) {
+	public synchronized boolean isMember(String user) {
 		return members.contains(user);
 	}
-	
-	public void saveCards() {
-		for(CardLocation l : CardLocation.values()) {
-			for(Card c : locationToList(l).values()) {
-				c.saveToFile(name);
-			}
-		}
-	}
-	
-	public void printCards() {
-		for(CardLocation l : CardLocation.values()) {
-			for(Card c : locationToList(l).values()) {
-				System.out.println(c);
-			}
-		}
-	}
 
-	public List<String> getCards() {
+	/**
+	 * @return a list of the names of all the cards in this project
+	 */
+	public synchronized List<String> getCards() {
 		List<String> cards = new ArrayList<String>();
 		for(CardLocation l : CardLocation.values()) {
 			for(Card c : locationToList(l).values()) {
@@ -170,31 +212,30 @@ public class Project implements Serializable {
 		}
 		return cards;
 	}
-
-	public CardInfo getCard(String cardName) {
-		String fileName = Card.toFileName(cardName);
-		if(todo.containsKey(fileName))
-			return new CardInfo(cardName, todo.get(fileName).description, CardLocation.TODO);
-		else if(in_progress.containsKey(fileName))
-			return new CardInfo(cardName, in_progress.get(fileName).description, CardLocation.IN_PROGRESS);
-		else if(to_be_revised.containsKey(fileName))
-			return new CardInfo(cardName, to_be_revised.get(fileName).description, CardLocation.TO_BE_REVISED);
-		else if(done.containsKey(fileName))
-			return new CardInfo(cardName, done.get(fileName).description, CardLocation.DONE);
+	
+	private CardLocation getCardLocation(String cardName) {
+		for(CardLocation l : CardLocation.values()) {
+			if(locationToList(l).containsKey(Card.toFileName(cardName)))
+				return l;
+		}
 		return null;
 	}
-	
-	public List<HistoryEntry> getCardHistory(String cardName) {
+
+	/**
+	 * Get the 'CardInfo' of a card
+	 * @param cardName
+	 * @return
+	 */
+	public synchronized CardInfo getCard(String cardName) {
 		String fileName = Card.toFileName(cardName);
-		if(todo.containsKey(fileName))
-			return todo.get(fileName).getHistory();
-		else if(in_progress.containsKey(fileName))
-			return in_progress.get(fileName).getHistory();
-		else if(to_be_revised.containsKey(fileName))
-			return to_be_revised.get(fileName).getHistory();
-		else if(done.containsKey(fileName))
-			return done.get(fileName).getHistory();
-		return null;
+		CardLocation location = getCardLocation(cardName);
+		Card card = locationToList(location).get(fileName);
+		return new CardInfo(card.name, card.description, location);
+	}
+	
+	public synchronized List<HistoryEntry> getCardHistory(String cardName) {
+		String fileName = Card.toFileName(cardName);
+		return locationToList(getCardLocation(cardName)).get(fileName).getHistory();
 	}
 	
 	public enum CardLocation {

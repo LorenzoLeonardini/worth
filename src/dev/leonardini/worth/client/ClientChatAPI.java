@@ -18,10 +18,10 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import dev.leonardini.worth.data.Project.CardLocation;
 import dev.leonardini.worth.networking.ChatFallbackReceiver;
 import dev.leonardini.worth.networking.NetworkUtils;
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 import dev.leonardini.worth.networking.WorthBuffer;
 
 public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver, Runnable {

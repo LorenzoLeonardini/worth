@@ -1,4 +1,4 @@
-package dev.leonardini.worth.data;
+package dev.leonardini.worth.server.data;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -12,6 +12,10 @@ import javax.crypto.spec.PBEKeySpec;
 
 import dev.leonardini.worth.networking.WorthBuffer;
 
+/**
+ * User object in the server database. Contains all the user data and sensitive information.
+ * Passwords are hashed with a unique salt.
+ */
 public class User {
 	
 	private String username;
@@ -20,6 +24,12 @@ public class User {
 	private String email;
 	private String mail_hash;
 	
+	/**
+	 * Create a user object with a given username and password
+	 * 
+	 * @param username
+	 * @param password
+	 */
 	public User(String username, String password) {
 		this.username = username;
 		
@@ -39,6 +49,11 @@ public class User {
 		}
 	}
 	
+	/**
+	 * Create a user object from a byte array. This is used when loading
+	 * users from the userdb file
+	 * @param data
+	 */
 	public User(byte data[]) {
 		WorthBuffer buffer = new WorthBuffer(data);
 		username = buffer.getString();
@@ -50,7 +65,11 @@ public class User {
 		}
 	}
 	
-	public void setEmail(String email) {
+	/**
+	 * Update the user email address. This updates the mail_hash as well
+	 * @param email
+	 */
+	public synchronized void setEmail(String email) {
 		this.email = email.trim().toLowerCase();
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -67,19 +86,24 @@ public class User {
 		}
 	}
 	
-	public String getEmail(String email) {
+	public synchronized String getEmail(String email) {
 		return this.email;
 	}
 	
-	public String getMailHash() {
+	public synchronized String getMailHash() {
 		return this.mail_hash;
 	}
 	
-	public String getUsername() {
+	public synchronized String getUsername() {
 		return this.username;
 	}
 	
-	public boolean checkPassword(String password) {
+	/**
+	 * Check if a password is the same to the user password. Used for login
+	 * @param password
+	 * @return
+	 */
+	public synchronized boolean checkPassword(String password) {
 		try {
 			KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
 			SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
@@ -100,7 +124,10 @@ public class User {
 		return false;
 	}
 	
-	public byte[] toByteArray() {
+	/**
+	 * Transform the user object to an array of bytes. Used to save into the userdb file 
+	 */
+	public synchronized byte[] toByteArray() {
 		int size = Integer.BYTES * 3 + username.length() * Character.BYTES + password.length + salt.length;
 		if(email != null) {
 			size += Integer.BYTES * 2 + email.length() * Character.BYTES + mail_hash.length() * Character.BYTES;

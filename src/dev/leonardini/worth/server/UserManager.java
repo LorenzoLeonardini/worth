@@ -11,9 +11,9 @@ import java.rmi.server.RemoteServer;
 import java.util.HashMap;
 import java.util.Map;
 
-import dev.leonardini.worth.data.User;
 import dev.leonardini.worth.networking.UserRegistration;
 import dev.leonardini.worth.networking.WorthBuffer;
+import dev.leonardini.worth.server.data.User;
 
 public class UserManager extends RemoteServer implements UserRegistration {
 

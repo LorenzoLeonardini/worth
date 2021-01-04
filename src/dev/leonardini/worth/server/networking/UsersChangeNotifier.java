@@ -8,12 +8,16 @@ import java.util.List;
 import dev.leonardini.worth.networking.NotifyUsersChange;
 import dev.leonardini.worth.networking.UsersChangeNotification;
 
+/**
+ * This class implements the NotifyUsersChange interface and is used as a stub for RMI
+ * to register and call remote callbacks.
+ */
 public class UsersChangeNotifier extends RemoteObject implements NotifyUsersChange {
 
 	private static final long serialVersionUID = -789172292414787069L;
 	private List<UsersChangeNotification> clients;
 	
-	public UsersChangeNotifier() throws RemoteException {
+	public UsersChangeNotifier() {
 		super();
 		clients = new ArrayList<UsersChangeNotification>();
 	}

@@ -18,7 +18,7 @@ import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.components.CardLabel;
 import dev.leonardini.worth.client.gui.components.ChatMessage;
 import dev.leonardini.worth.data.CardInfo;
-import dev.leonardini.worth.data.Project.CardLocation;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 
 /**
  * Component representing the chat panel on the right.

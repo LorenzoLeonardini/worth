@@ -5,16 +5,21 @@ import java.rmi.server.RemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.leonardini.worth.data.Project.CardLocation;
 import dev.leonardini.worth.networking.ChatFallbackReceiver;
 import dev.leonardini.worth.networking.ChatFallbackRegistration;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 
+/**
+ * This class implements the ChatFallbackRegistration interface to manage chat messages
+ * when some users are not reachable via UDP Multicast. Allows to register remote RMI
+ * callbacks and to send them chat messages from the server
+ */
 public class ChatForwarder extends RemoteObject implements ChatFallbackRegistration {
 
 	private static final long serialVersionUID = -789172292414787069L;
 	private List<ChatFallbackReceiver> clients;
 	
-	public ChatForwarder() throws RemoteException {
+	public ChatForwarder() {
 		super();
 		clients = new ArrayList<ChatFallbackReceiver>();
 	}
@@ -31,14 +36,9 @@ public class ChatForwarder extends RemoteObject implements ChatFallbackRegistrat
 		clients.remove(callback);
 	}
 	
-	public void send(long timestamp, String project, String username, String message) {
+	public void send(long timestamp, String project, String username, String message) throws RemoteException {
 		for(ChatFallbackReceiver client : clients)
-			try {
-				client.receiveMessage(timestamp, project, username, message);
-			}
-			catch (RemoteException e) {
-				e.printStackTrace();
-			}
+			client.receiveMessage(timestamp, project, username, message);
 	}
 	
 	public void send(long timestamp, String project, String card, String user, CardLocation from, CardLocation to) throws RemoteException {

@@ -13,8 +13,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.SwingConstants;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 
 import dev.leonardini.worth.client.ClientAPI;
 import dev.leonardini.worth.client.gui.assets.GuiUtils;
@@ -48,15 +46,9 @@ public class ProjectDeletionDialog extends JDialog {
 		setLocationRelativeTo(null);
 		setResizable(false);
 		setTitle("Conferma eliminazione");
+		setAlwaysOnTop(true);
 		panel = (JPanel) getContentPane();
 		panel.setLayout(null);
-		
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-			e.printStackTrace();
-		}
 		
 		JLabel confirmTitle = new JLabel("<html><body style='text-align:center'>Inserisci la password per confermare di voler eliminare il progetto</body></html>");
 		confirmTitle.setFont(GuiUtils.USER_PANEL_TITLE_FONT);

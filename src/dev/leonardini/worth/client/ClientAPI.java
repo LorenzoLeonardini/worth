@@ -19,7 +19,6 @@ import java.util.Set;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.networking.UsersChangeUpdater;
 import dev.leonardini.worth.data.CardInfo;
-import dev.leonardini.worth.data.Project.CardLocation;
 import dev.leonardini.worth.networking.ChatFallbackReceiver;
 import dev.leonardini.worth.networking.ChatFallbackRegistration;
 import dev.leonardini.worth.networking.NetworkUtils;
@@ -27,6 +26,7 @@ import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.NotifyUsersChange;
 import dev.leonardini.worth.networking.UserRegistration;
 import dev.leonardini.worth.networking.UserRegistration.InvalidRegistrationException;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 import dev.leonardini.worth.networking.UsersChangeNotification;
 import dev.leonardini.worth.networking.WorthBuffer;
 
@@ -72,7 +72,7 @@ public class ClientAPI implements UserUpdateCallback {
 	 */
 	private ClientAPI() {
 		// Set system property to allow using client and server on different machines
-		System.setProperty("java.rmi.server.hostname", NetworkUtils.getPrivateIp());
+		System.setProperty("java.rmi.server.hostname", NetworkUtils.getInternalIp(null));
 		
 		// Setup shutdown cleanup
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -164,6 +164,7 @@ public class ClientAPI implements UserUpdateCallback {
 		try {
 			if(socketChannel == null)
 				socketChannel = SocketChannel.open(new InetSocketAddress(host, NetworkUtils.SERVER_PORT));
+			System.setProperty("java.rmi.server.hostname", NetworkUtils.getInternalIp(socketChannel));
 			unbusy();
 		} catch (IOException e) {
 			info_message = "Errore di connessione";

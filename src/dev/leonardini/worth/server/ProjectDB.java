@@ -10,14 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import dev.leonardini.worth.data.Card;
-import dev.leonardini.worth.data.Card.HistoryEntry;
 import dev.leonardini.worth.data.CardInfo;
-import dev.leonardini.worth.data.Project;
-import dev.leonardini.worth.data.Project.CardLocation;
-import dev.leonardini.worth.data.Project.InvalidCardException;
-import dev.leonardini.worth.data.Project.InvalidCardMovementException;
-import dev.leonardini.worth.data.Project.ProjectUndeletableException;
+import dev.leonardini.worth.server.data.Card;
+import dev.leonardini.worth.server.data.Project;
+import dev.leonardini.worth.server.data.Card.HistoryEntry;
+import dev.leonardini.worth.server.data.Project.CardLocation;
+import dev.leonardini.worth.server.data.Project.InvalidCardException;
+import dev.leonardini.worth.server.data.Project.InvalidCardMovementException;
+import dev.leonardini.worth.server.data.Project.ProjectUndeletableException;
 
 public class ProjectDB {
 	
@@ -54,9 +54,6 @@ public class ProjectDB {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
-		for(Project p : projects.values())
-			p.saveCards();
 	}
 	
 	public static boolean createProject(String name, String user) {
