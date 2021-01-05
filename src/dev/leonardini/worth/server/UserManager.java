@@ -117,6 +117,10 @@ public class UserManager extends RemoteServer implements UserRegistration {
 		}
 	}
 	
+	public Map<String, Boolean> getUsersStatusMap() {
+		return new HashMap<String, Boolean>(user_status);
+	}
+	
 	public WorthBuffer getUsersStatus() {
 		WorthBuffer buffer = new WorthBuffer(1024);
 		synchronized (user_status) {

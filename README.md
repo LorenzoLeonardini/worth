@@ -8,7 +8,7 @@ Link testo esame: [PDF](https://elearning.di.unipi.it/mod/assign/view.php?id=976
 
 - [ ] refactor
 - [ ] comments
-- [ ] server command line
+- [x] server command line
 - [ ] handle empty inputs (avoid sending them to the server)
 - [ ] write report
 - [ ] consider proper testing

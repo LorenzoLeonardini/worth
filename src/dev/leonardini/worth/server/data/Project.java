@@ -91,7 +91,7 @@ public class Project implements Serializable {
 		List<String> cards[] = (List[]) ois.readObject();
 		for(CardLocation l : CardLocation.values()) {
 			for(String c : cards[l.ordinal()]) {
-				locationToList(l).put(c, Card.loadFromFile(name, c));
+				locationToList(l).put(Card.toFileName(c), Card.loadFromFile(name, c));
 			}
 		}
 	}
@@ -229,6 +229,7 @@ public class Project implements Serializable {
 	public synchronized CardInfo getCard(String cardName) {
 		String fileName = Card.toFileName(cardName);
 		CardLocation location = getCardLocation(cardName);
+		System.out.println(location);
 		Card card = locationToList(location).get(fileName);
 		return new CardInfo(card.name, card.description, location);
 	}

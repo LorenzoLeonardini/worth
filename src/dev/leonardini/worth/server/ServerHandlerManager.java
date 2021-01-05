@@ -50,12 +50,13 @@ public class ServerHandlerManager {
 	 * @return the WorthBuffer to send back to the user
 	 */
 	public WorthBuffer handle(SelectionKey key) {
+		try {
 		// Get some data and initialize some objects
 		Session session = (Session) key.attachment();
-		Operation op = session.current_operation;
+		Operation op = session.buffer.getOperation();
 		int requirements = this.requirements.get(op);
 		WorthBuffer out = new WorthBuffer();
-		out.putOperation(session.current_operation);
+		out.putOperation(op);
 		
 		// If the requirements need the user to be logged,
 		// verify that
@@ -88,6 +89,11 @@ public class ServerHandlerManager {
 		handlers.get(op).handle(session, key, out);
 		session.buffer.clear();
 		return out;
+		} catch(Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		return null;
 	}
 	
 	@FunctionalInterface

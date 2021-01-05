@@ -10,16 +10,15 @@ import java.nio.channels.SocketChannel;
 import java.rmi.RemoteException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Set;
 
 import dev.leonardini.worth.data.CardInfo;
 import dev.leonardini.worth.networking.NetworkUtils;
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
-import dev.leonardini.worth.server.data.Project;
-import dev.leonardini.worth.server.data.Card.HistoryEntry;
-import dev.leonardini.worth.server.data.Project.CardLocation;
 import dev.leonardini.worth.networking.WorthBuffer;
+import dev.leonardini.worth.server.data.Card.HistoryEntry;
+import dev.leonardini.worth.server.data.Project;
+import dev.leonardini.worth.server.data.Project.CardLocation;
 
 public class ServerMain {
 	
@@ -27,7 +26,6 @@ public class ServerMain {
 	
 	private ServerSocketChannel serverChannel;
 	private Selector selector;
-	private Scanner scanner;
 	
 	private boolean running = true;
 	
@@ -44,39 +42,10 @@ public class ServerMain {
 		Logger.Trace("Server listening on port " + NetworkUtils.SERVER_PORT);
 		
 		// Get terminal input
-		System.out.println("\nType 'help' for a list of commands\n");
-		scanner = new Scanner(System.in);
-		String line;
-		while((line = scanner.nextLine()) != null) {
-			line = line.trim();
-			switch(line) {
-				case "help":
-					System.out.println("help\t\tget a list of commands");
-					System.out.println("verbose\t\tenable verbose mode -> all logs are shown in console");
-					System.out.println("silent\t\tdisable verbose mode");
-					System.out.println("exit\t\tgracefully close the server");
-					System.out.println("\n");
-					break;
-				case "exit":
-					System.out.println("Goodbye");
-					cleanUp();
-					System.exit(0);
-					break;
-				case "verbose":
-					System.out.println("Toggled verbose");
-					Logger.verbose(true);
-					break;
-				case "silent":
-					System.out.println("Toggled verbose");
-					Logger.verbose(false);
-					break;
-				default:
-					System.out.println("Unknown command\n");
-			}
-		}
+		new ServerCLI(this, userManager).start();
 	}
 	
-	private void cleanUp() {
+	protected void cleanUp() {
 		running = false;
 		try {
 			selector.close();
@@ -84,7 +53,6 @@ public class ServerMain {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		scanner.close();
 		userManager.saveToFile();
 		ProjectDB.save("projectdb");
 	}
@@ -143,7 +111,6 @@ public class ServerMain {
 							}
 
 							if(session.buffer.remaining() == 0) break;
-							session.current_operation = session.buffer.getOperation();
 							if(key.isValid())
 								key.interestOps(SelectionKey.OP_WRITE);
 						} else if(key.isWritable()) {
@@ -370,13 +337,12 @@ public class ServerMain {
 	class Session {
 		String username;
 		boolean logged = false;
-		NetworkUtils.Operation current_operation;
 		WorthBuffer buffer = new WorthBuffer();
 		public int ttl = 100;
 		
 		@Override
 		public String toString() {
-			return "username:" + username + ";logged:" + logged + ";operation:" + current_operation;
+			return "username:" + username + ";logged:" + logged;
 		}
 	}
 

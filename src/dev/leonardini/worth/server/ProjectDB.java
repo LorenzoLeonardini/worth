@@ -37,6 +37,7 @@ public class ProjectDB {
 		} catch (FileNotFoundException e) {
 			Logger.Trace("No project db file. New file will be created");
 		} catch (Exception e) {
+			e.printStackTrace();
 			Logger.Error("Cannot read project db file");
 		}
 		projects = new HashMap<String, Project>();
@@ -128,6 +129,10 @@ public class ProjectDB {
 		if(p == null) return false;
 		p.delete();
 		return true;
+	}
+	
+	public static List<String> getProjects() {
+		return new ArrayList<String>(projects.keySet());
 	}
 	
 }
