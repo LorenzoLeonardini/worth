@@ -81,6 +81,11 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 			public void keyTyped(KeyEvent e) {
 				if(e.getKeyChar() == KeyEvent.VK_ENTER) {
 					new Thread(() -> {
+						if(input.getText().trim().length() == 0) {
+							input.setText("");
+							return;
+						}
+						
 						ClientAPI.get().sendChatMsg(projectName, input.getText());
 						input.setText("");
 					}).start();

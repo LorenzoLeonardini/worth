@@ -132,6 +132,10 @@ public class LoginScreen extends JFrame {
 	}
 	
 	private void register() {
+		if(username.getText().trim().length() == 0 
+				|| new String(password.getPassword()).trim().length() == 0 
+				|| server.getText().trim().length() == 0) 
+			return;
 		System.out.println("Registering...");
 		load(() -> {
 			ClientAPI.get().estabilish(server.getText());
@@ -149,6 +153,10 @@ public class LoginScreen extends JFrame {
 	}
 	
 	private void login() {
+		if(username.getText().trim().length() == 0 
+				|| new String(password.getPassword()).trim().length() == 0 
+				|| server.getText().trim().length() == 0) 
+			return;
 		System.out.println("Logging in...");
 		load(() -> {
 			ClientAPI.get().estabilish(server.getText());

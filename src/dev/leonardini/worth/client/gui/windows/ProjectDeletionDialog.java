@@ -101,6 +101,9 @@ public class ProjectDeletionDialog extends JDialog {
 	 * @param password
 	 */
 	private void deleteProject(String projectName, String password) {
+		if(password.trim().length() == 0)
+			return;
+		
 		setContentPane(loadingPanel);
 		invalidate();
 		validate();

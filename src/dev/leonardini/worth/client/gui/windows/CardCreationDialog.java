@@ -94,6 +94,9 @@ public class CardCreationDialog extends JDialog {
 	}
 	
 	private void addCard(String projectName, String cardName, String cardDescription) {
+		if(projectName.trim().length() == 0 || cardName.trim().length() == 0 || cardDescription.trim().length() == 0)
+			return;
+		
 		setContentPane(loadingPanel);
 		invalidate();
 		validate();

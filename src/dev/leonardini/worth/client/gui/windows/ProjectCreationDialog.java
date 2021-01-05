@@ -95,6 +95,8 @@ public class ProjectCreationDialog extends JDialog {
 	 * @param projectName
 	 */
 	private void createProject(String projectName) {
+		if(projectName.trim().length() == 0) return;
+		
 		setContentPane(loadingPanel);
 		invalidate();
 		validate();

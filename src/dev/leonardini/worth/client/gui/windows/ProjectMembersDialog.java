@@ -128,6 +128,9 @@ public class ProjectMembersDialog extends JDialog {
 	 * @param username
 	 */
 	private void addMember(String username) {
+		if(username.trim().length() == 0)
+			return;
+		
 		scrollPane.setViewportView(loadingPanel);
 		invalidate();
 		validate();
