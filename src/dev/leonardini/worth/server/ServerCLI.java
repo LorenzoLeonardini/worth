@@ -4,13 +4,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
+/**
+ * ServerCLI is the server components which manages the server command line,
+ * used to interface and check in with the server, and, most importantly, to
+ * close gracefully, making sure to save the updates to the databases
+ */
 public class ServerCLI extends Thread {
 	
 	private Scanner scanner;
 	
 	private Map<String, Command> commands = new HashMap<String, Command>();
 	
-	public ServerCLI(ServerMain serverMain, UserManager userManager) {
+	protected ServerCLI(ServerTCP serverTCP) {
 		add("help", "get a list of commands", () -> {
 			for(Command c : commands.values())
 				System.out.println(c.command + "\t\t\t" + c.description);
@@ -19,7 +24,7 @@ public class ServerCLI extends Thread {
 		
 		add("exit", "gracefully close the server", () -> {
 			System.out.println("Goodbye");
-			serverMain.cleanUp();
+			serverTCP.cleanUp();
 			scanner.close();
 			System.exit(0);
 		});
@@ -35,21 +40,21 @@ public class ServerCLI extends Thread {
 		});
 		
 		add("list users", "get a list of all the users", () -> {
-			Map<String, Boolean> map = userManager.getUsersStatusMap();
+			Map<String, Boolean> map = UserManager.get().getUsersStatusMap();
 			for(String user : map.keySet()) {
 				System.out.println("\t- " + user);
 			}
 		});
 		
 		add("list users status", "get a list of all the users and their status", () -> {
-			Map<String, Boolean> map = userManager.getUsersStatusMap();
+			Map<String, Boolean> map = UserManager.get().getUsersStatusMap();
 			for(String user : map.keySet()) {
 				System.out.println("\t- " + user + " -> " + (map.get(user) ? "online" : "offline"));
 			}
 		});
 		
 		add("list online users", "get a list of all the users which are online", () -> {
-			Map<String, Boolean> map = userManager.getUsersStatusMap();
+			Map<String, Boolean> map = UserManager.get().getUsersStatusMap();
 			for(String user : map.keySet()) {
 				if(map.get(user))
 					System.out.println("\t- " + user);
@@ -57,7 +62,7 @@ public class ServerCLI extends Thread {
 		});
 		
 		add("list offline users", "get a list of all the users which are offline", () -> {
-			Map<String, Boolean> map = userManager.getUsersStatusMap();
+			Map<String, Boolean> map = UserManager.get().getUsersStatusMap();
 			for(String user : map.keySet()) {
 				if(!map.get(user))
 					System.out.println("\t- " + user);
@@ -92,11 +97,11 @@ public class ServerCLI extends Thread {
 	}
 
 	class Command {
-		public final String command;
-		public final String description;
-		public final Runnable exec;
+		protected final String command;
+		protected final String description;
+		protected final Runnable exec;
 		
-		public Command(String command, String description, Runnable exec) {
+		protected Command(String command, String description, Runnable exec) {
 			this.command = command;
 			this.description = description;
 			this.exec = exec;

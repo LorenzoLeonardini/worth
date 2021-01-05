@@ -2,12 +2,11 @@ package dev.leonardini.worth.server;
 
 import java.nio.channels.SelectionKey;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.WorthBuffer;
-import dev.leonardini.worth.server.ServerMain.Session;
+import dev.leonardini.worth.server.ServerTCP.Session;
 
 /**
  * Handles incoming communications from clients. Register a handler for a specific operation
@@ -73,15 +72,11 @@ public class ServerHandlerManager {
 			session.buffer.mark();
 			String projectName = session.buffer.getString();
 			session.buffer.reset();
-			List<String> projectMembers = ProjectDB.getMembers(projectName);
-			if(projectMembers == null) {
+			try {
+				ProjectDB.checkProjectMembership(session.username, projectName);
+			} catch(Exception e) {
 				out.putBoolean(false);
-				out.putString("Progetto inesistente");
-				return out;
-			}
-			if(!projectMembers.contains(session.username)) {
-				out.putBoolean(false);
-				out.putString("Non fai parte del progetto");
+				out.putString(e.getMessage());
 				return out;
 			}
 		}

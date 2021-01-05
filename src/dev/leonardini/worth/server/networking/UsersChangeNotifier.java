@@ -23,24 +23,24 @@ public class UsersChangeNotifier extends RemoteObject implements NotifyUsersChan
 	}
 
 	@Override
-	public void registerForCallback(UsersChangeNotification callback) throws RemoteException {
+	public synchronized void registerForCallback(UsersChangeNotification callback) throws RemoteException {
 		if(!clients.contains(callback)) {
 			clients.add(callback);
 		}
 	}
 
 	@Override
-	public void unregisterForCallback(UsersChangeNotification callback) throws RemoteException {
+	public synchronized void unregisterForCallback(UsersChangeNotification callback) throws RemoteException {
 		clients.remove(callback);
 	}
 	
-	public void updateClients(String username, boolean status) throws RemoteException {
+	public synchronized void updateClients(String username, boolean status) throws RemoteException {
 		for(UsersChangeNotification c : clients) {
 			c.notifyChange(username, status);
 		}
 	}
 	
-	public void updatePropic(String username, String hash) throws RemoteException {
+	public synchronized void updatePropic(String username, String hash) throws RemoteException {
 		for(UsersChangeNotification c : clients) {
 			c.notifyPropicChange(username, hash);
 		}

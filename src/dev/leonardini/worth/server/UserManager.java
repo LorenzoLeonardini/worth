@@ -15,6 +15,10 @@ import dev.leonardini.worth.networking.UserRegistration;
 import dev.leonardini.worth.networking.WorthBuffer;
 import dev.leonardini.worth.server.data.User;
 
+/**
+ * This singleton class manages all the user for the application. It is responsible
+ * for registration, queries, file saves/loads.
+ */
 public class UserManager extends RemoteServer implements UserRegistration {
 
 	private static final long serialVersionUID = -4247880533992442369L;
@@ -22,35 +26,62 @@ public class UserManager extends RemoteServer implements UserRegistration {
 	private Map<String, User> users = new HashMap<String, User>();
 	private String filename;
 	private Map<String, Boolean> user_status = new HashMap<String, Boolean>();
-
-	public UserManager(String filename) {
+	
+	private static UserManager instance = null;
+	
+	/**
+	 * Initialize user manager, loading user db from filename
+	 * 
+	 * @param filename
+	 */
+	private UserManager(String filename) {
 		this.filename = filename;
-		Logger.Trace("Reading user db file");
+		Logger.Log("Reading user db file");
 		try {
 			ReadableByteChannel file = Channels.newChannel(new FileInputStream(filename));
 			WorthBuffer db = new WorthBuffer(1024, true);
 			while(db.read(file) != -1) {
 				while(db.canGetArray()) {
 					User u = new User(db.getArray());
-					Logger.Trace("Loaded " + u.getUsername());
 					users.put(u.getUsername(), u);
 					user_status.put(u.getUsername(), false);
 				}
 				db.compact();
 			}
 			file.close();
-			Logger.Trace("Loaded " + users.size() + " users");
+			Logger.Log("Loaded " + users.size() + " users");
 		} catch(FileNotFoundException e) {
-			Logger.Trace("No user db file");
+			Logger.Log("No user db file");
 		} catch (Exception e) {
 			e.printStackTrace();
 			Logger.Error("Error reading user db file");
 		}
 	}
+	
+	/**
+	 * Retrieve the singleton instance of the UserManager
+	 * @throws NullPointerException if instance is not initialized with `init()`
+	 */
+	public static UserManager get() {
+		if(instance == null) throw new NullPointerException();
+		return instance;
+	}
+
+	/**
+	 * Initialize singleton instance, loading user db from filename
+	 * @param filename
+	 */
+	public static void init(String filename) {
+		instance = new UserManager(filename);
+	}
 
 	@Override
+	/**
+	 * Register a user. Can throw a number of exceptions related to the invalidity of input data
+	 * (i.e. password length)
+	 */
 	public String register(String username, String password) throws RemoteException, InvalidRegistrationException {
-		Logger.Trace("Registration request");
+		Logger.Log("Registration request");
 		if (username == null || password == null)
 			throw new NullPointerException();
 		username = username.trim().toLowerCase();
@@ -68,72 +99,106 @@ public class UserManager extends RemoteServer implements UserRegistration {
 			user = new User(username, password);
 			users.put(username, user);
 		}
-		synchronized (user_status) {
-			updateUserStatus(username, false);
-		}
+		updateUserStatus(username, false);
 		saveUserToFile(user);
 
 		return "Registrazione avvenuta con successo";
 	}
 
+	/**
+	 * Request a user login. When succeeding, all other users are updated
+	 * 
+	 * @param username
+	 * @param password
+	 * @return
+	 * @throws Exception if user already logged
+	 */
 	public boolean login(String username, String password) throws Exception {
-		boolean response;
 		synchronized(user_status) {
 			if(user_status.containsKey(username) && user_status.get(username))
-				throw new Exception("Already logged in");
+				throw new Exception("Utente già connesso");
 		}
-		response = securityLogin(username, password);
+		boolean response = securityLogin(username, password);
 		if(response) {
-			synchronized(user_status) {
-				updateUserStatus(username, true);
-			}
+			updateUserStatus(username, true);
 		}
 		return response;
 	}
 	
+	/**
+	 * Check if username-password pair is valid. Can be used for logging in or for
+	 * checking password in case of 'sudo mode' (deleting projects)
+	 * 
+	 * @param username
+	 * @param password
+	 * @return
+	 */
 	public boolean securityLogin(String username, String password) {
-		boolean response;
 		synchronized (users) {
-			response = users.containsKey(username) && users.get(username).checkPassword(password);
+			return users.containsKey(username) && users.get(username).checkPassword(password);
 		}
-		return response;
 	}
 	
 	public void logout(String username) {
 		if(username == null) return;
 		updateUserStatus(username, false);
-		Logger.Trace(username + " logged out");
+		Logger.Log(username + " logged out");
 	}
 	
+	/**
+	 * Update internal data structure with the new user status. Send RMI notification
+	 * to all connected users to inform them of the change.
+	 * 
+	 * @param username
+	 * @param status offline/online
+	 */
 	private void updateUserStatus(String username, boolean status) {
 		synchronized(user_status) {
 			user_status.put(username, status);
-			try {
-				RMIServer.notifyUsersChange.updateClients(username, status);
-			}
-			catch (RemoteException e) {
-				e.printStackTrace();
-			}
+		}
+		try {
+			RMIServer.notifyUsersChange.updateClients(username, status);
+		}
+		catch (RemoteException e) {
+			e.printStackTrace();
 		}
 	}
 	
+	/**
+	 * @return a map associating all users to their current status (online/offline)
+	 */
 	public Map<String, Boolean> getUsersStatusMap() {
-		return new HashMap<String, Boolean>(user_status);
+		synchronized (user_status) {
+			return new HashMap<String, Boolean>(user_status);
+		}
 	}
 	
+	/**
+	 * Retrieve user status information in the form of a WorthBuffer.
+	 * This is used when a user logs in, to inform them of all users and their propic
+	 * info
+	 */
 	public WorthBuffer getUsersStatus() {
-		WorthBuffer buffer = new WorthBuffer(1024);
-		synchronized (user_status) {
-			for(String user : user_status.keySet()) {
-				buffer.putString(user);
-				buffer.putBoolean(user_status.get(user));
-				String hash = users.get(user).getMailHash();
-				buffer.putString(hash != null ? hash : "");
+		WorthBuffer buffer = new WorthBuffer();
+		synchronized (users) {
+			synchronized (user_status) {
+				for(String user : user_status.keySet()) {
+					buffer.putString(user);
+					buffer.putBoolean(user_status.get(user));
+					String hash = users.get(user).getMailHash();
+					buffer.putString(hash != null ? hash : "");
+				}
 			}
 		}
 		return buffer;
 	}
 	
+	/**
+	 * Update a user profile picture data
+	 * 
+	 * @param username
+	 * @param email the email linked to the gravatar image
+	 */
 	public void updateProfilePicture(String username, String email) {
 		String hash;
 		synchronized (users) {
@@ -153,7 +218,7 @@ public class UserManager extends RemoteServer implements UserRegistration {
 	 * This allows to have all sensitive and important data stored on the disk,
 	 * even if the application suddenly crashes the main user data don't get lost
 	 */
-	private void saveUserToFile(User user) {
+	private synchronized void saveUserToFile(User user) {
 		synchronized(filename) {
 			try {
 				WritableByteChannel file = Channels.newChannel(new FileOutputStream(filename, true));
@@ -174,26 +239,24 @@ public class UserManager extends RemoteServer implements UserRegistration {
 	 * userdb file. This allows saving less sensitive data without the need for
 	 * large computations and file parsing.
 	 */
-	public void saveToFile() {
-		synchronized (filename) {
-			try {
-				WritableByteChannel file = Channels.newChannel(new FileOutputStream(filename));
-				WorthBuffer db = new WorthBuffer(1024, true);
-				for(User u : users.values()) {
-					byte arr[] = u.toByteArray();
-					while(arr.length + Integer.BYTES > db.remaining()) {
-						db.write(file);
-						db.compact();
-					}
-					db.put(arr);
-				}
-				while(db.hasRemaining()) {
+	public synchronized void saveToFile() {
+		try {
+			WritableByteChannel file = Channels.newChannel(new FileOutputStream(filename));
+			WorthBuffer db = new WorthBuffer(1024, true);
+			for(User u : users.values()) {
+				byte arr[] = u.toByteArray();
+				while(arr.length + Integer.BYTES > db.remaining()) {
 					db.write(file);
+					db.compact();
 				}
-				file.close();
-			} catch (Exception e) {
-				e.printStackTrace();
+				db.put(arr);
 			}
+			while(db.hasRemaining()) {
+				db.write(file);
+			}
+			file.close();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -201,6 +264,15 @@ public class UserManager extends RemoteServer implements UserRegistration {
 		synchronized (users) {
 			return users.containsKey(username);
 		}
+	}
+	
+	/**
+	 * If provided user does not exist, an exception is thrown
+	 * @param username
+	 */
+	public void checkExistance(String username) throws Exception {
+		if(!exists(username))
+			throw new Exception("L'utente non esiste");
 	}
 
 }

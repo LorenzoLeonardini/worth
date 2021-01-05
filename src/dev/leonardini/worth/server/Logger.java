@@ -7,7 +7,10 @@ import java.nio.channels.WritableByteChannel;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class Logger {
+/**
+ * Print fancy log messages and save them to file for later use
+ */
+public abstract class Logger {
 	
 	private static WritableByteChannel file;
 	private static ByteBuffer buffer;
@@ -41,7 +44,7 @@ public class Logger {
 		}
 	}
 
-	public static void Trace(String message) {
+	public static void Log(String message) {
 		if(file == null) {
 			init();
 		}

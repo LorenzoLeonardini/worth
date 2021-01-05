@@ -25,23 +25,23 @@ public class ChatForwarder extends RemoteObject implements ChatFallbackRegistrat
 	}
 
 	@Override
-	public void registerForCallback(ChatFallbackReceiver callback) throws RemoteException {
+	public synchronized void registerForCallback(ChatFallbackReceiver callback) throws RemoteException {
 		if(!clients.contains(callback)) {
 			clients.add(callback);
 		}
 	}
 
 	@Override
-	public void unregisterForCallback(ChatFallbackReceiver callback) throws RemoteException {
+	public synchronized void unregisterForCallback(ChatFallbackReceiver callback) throws RemoteException {
 		clients.remove(callback);
 	}
 	
-	public void send(long timestamp, String project, String username, String message) throws RemoteException {
+	public synchronized void send(long timestamp, String project, String username, String message) throws RemoteException {
 		for(ChatFallbackReceiver client : clients)
 			client.receiveMessage(timestamp, project, username, message);
 	}
 	
-	public void send(long timestamp, String project, String card, String user, CardLocation from, CardLocation to) throws RemoteException {
+	public synchronized void send(long timestamp, String project, String card, String user, CardLocation from, CardLocation to) throws RemoteException {
 		for(ChatFallbackReceiver client : clients)
 			client.receiveSystem(timestamp, project, card, user, from, to);
 	}

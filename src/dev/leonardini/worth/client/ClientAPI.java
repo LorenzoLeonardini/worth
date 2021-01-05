@@ -93,8 +93,7 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @param host server address
 	 * @return outcome
 	 */
-	public boolean estabilish(String host) {
-		makeBusy();
+	public synchronized boolean estabilish(String host) {
 		// Cleanup TCP connection
 		if(this.host == null || !this.host.equalsIgnoreCase(host)) {
 			if(socketChannel != null) {
@@ -108,7 +107,6 @@ public class ClientAPI implements UserUpdateCallback {
 			}
 			socketChannel = null;
 		}
-		unbusy();
 		
 		this.host = host;
 		
@@ -158,18 +156,15 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @param password
 	 * @return outcome
 	 */
-	public boolean login(String username, String password) {
-		makeBusy();
+	public synchronized boolean login(String username, String password) {
 		// Init TCP connection
 		try {
 			if(socketChannel == null)
 				socketChannel = SocketChannel.open(new InetSocketAddress(host, NetworkUtils.SERVER_PORT));
 			System.setProperty("java.rmi.server.hostname", NetworkUtils.getInternalIp(socketChannel));
-			unbusy();
 		} catch (IOException e) {
 			info_message = "Errore di connessione";
 			e.printStackTrace();
-			unbusy();
 			return false;
 		}
 		
@@ -203,19 +198,16 @@ public class ClientAPI implements UserUpdateCallback {
 	 * Logout, clean up connection etc
 	 * @return outcome
 	 */
-	private boolean logout() {
-		makeBusy();
+	private synchronized boolean logout() {
 		try {
 			WorthBuffer buffer = new WorthBuffer();
 			buffer.putOperation(Operation.LOGOUT);
 			buffer.write(socketChannel);
 			socketChannel.close();
 			username = null;
-			unbusy();
 			return true;
 		} catch(IOException e) {
 			info_message = e.getMessage();
-			unbusy();
 			return false;
 		}
 	}
@@ -560,22 +552,6 @@ public class ClientAPI implements UserUpdateCallback {
 		return serverCommunicationBoolean(op, write, (buffer) -> {return true;});
 	}
 	
-	private boolean busy = false;
-	
-	private synchronized void makeBusy() {
-		try {
-			while(busy) this.wait();
-			busy = true;
-		}
-		catch (InterruptedException e) {
-		}
-	}
-	
-	private synchronized void unbusy() {
-		busy = false;
-		this.notifyAll();
-	}
-	
 	/**
 	 * Helper function to make the code slimmer
 	 * 
@@ -584,11 +560,9 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @param read what to read from the buffer
 	 * @return outcome
 	 */
-	private boolean serverCommunicationBoolean(Operation op, BufferWrite write, BufferReadBool read) {
-		makeBusy();
+	private synchronized boolean serverCommunicationBoolean(Operation op, BufferWrite write, BufferReadBool read) {
 		if(socketChannel == null) {
 			info_message = "Nessuna connessione";
-			unbusy();
 			return false;
 		}
 		
@@ -598,12 +572,10 @@ public class ClientAPI implements UserUpdateCallback {
 		
 		if(comm.send()) {
 			boolean ret = read.run(buffer);
-			unbusy();
 			return ret;
 		}
 		info_message = comm.getErrorMessage();
 		System.out.println(info_message);
-		unbusy();
 		return false;
 	}
 	
@@ -615,11 +587,9 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @param read what to read from the buffer
 	 * @return result or null in case of error
 	 */
-	private Object serverCommunicationObject(Operation op, BufferWrite write, BufferReadObj read) {
-		makeBusy();
+	private synchronized Object serverCommunicationObject(Operation op, BufferWrite write, BufferReadObj read) {
 		if(socketChannel == null) {
 			info_message = "Nessuna connessione";
-			unbusy();
 			return null;
 		}
 		
@@ -629,12 +599,10 @@ public class ClientAPI implements UserUpdateCallback {
 
 		if(comm.send()) {
 			Object ret = read.run(buffer);
-			unbusy();
 			return ret;
 		}
 		info_message = comm.getErrorMessage();
 		System.out.println(info_message);
-		unbusy();
 		return null;
 	}
 	

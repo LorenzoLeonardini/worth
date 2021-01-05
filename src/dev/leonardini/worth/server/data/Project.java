@@ -166,10 +166,13 @@ public class Project implements Serializable {
 	 * must be done somewhere else.
 	 * 
 	 * @param username
+	 * @throws Exception if user is already a member
 	 */
-	public synchronized void addMember(String username) {
+	public synchronized void addMember(String username) throws Exception {
 		if(username == null)
 			throw new NullPointerException();
+		if(members.contains(username))
+			throw new Exception("L'utente è già membro");
 		members.add(username);
 	}
 	
@@ -213,12 +216,12 @@ public class Project implements Serializable {
 		return cards;
 	}
 	
-	private CardLocation getCardLocation(String cardName) {
+	private CardLocation getCardLocation(String cardName) throws Exception {
 		for(CardLocation l : CardLocation.values()) {
 			if(locationToList(l).containsKey(Card.toFileName(cardName)))
 				return l;
 		}
-		return null;
+		throw new Exception("Card non esistente");
 	}
 
 	/**
@@ -226,15 +229,16 @@ public class Project implements Serializable {
 	 * @param cardName
 	 * @return
 	 */
-	public synchronized CardInfo getCard(String cardName) {
+	public synchronized CardInfo getCard(String cardName) throws Exception {
 		String fileName = Card.toFileName(cardName);
 		CardLocation location = getCardLocation(cardName);
-		System.out.println(location);
 		Card card = locationToList(location).get(fileName);
+		if(card == null)
+			throw new Exception("Card non esistente");
 		return new CardInfo(card.name, card.description, location);
 	}
 	
-	public synchronized List<HistoryEntry> getCardHistory(String cardName) {
+	public synchronized List<HistoryEntry> getCardHistory(String cardName) throws Exception {
 		String fileName = Card.toFileName(cardName);
 		return locationToList(getCardLocation(cardName)).get(fileName).getHistory();
 	}

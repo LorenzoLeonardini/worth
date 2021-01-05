@@ -30,15 +30,15 @@ public abstract class RMIServer {
 	 * 
 	 * @param userManager
 	 */
-	public static void init(UserManager userManager) {
+	public static void init() {
 		try {
 			LocateRegistry.createRegistry(NetworkUtils.REGISTRY_PORT);
 			Registry r = LocateRegistry.getRegistry(NetworkUtils.REGISTRY_PORT);
 			
-			initRegistration(r, userManager);
+			initRegistration(r);
 			initNotifier(r);
 			initChatFallback(r);
-			Logger.Trace("RMI Registry running on port " + NetworkUtils.REGISTRY_PORT);
+			Logger.Log("RMI Registry running on port " + NetworkUtils.REGISTRY_PORT);
 		}
 		catch (RemoteException e) {
 			Logger.Error(e.getMessage());
@@ -46,8 +46,8 @@ public abstract class RMIServer {
 		}
 	}
 	
-	private static void initRegistration(Registry r, UserManager user_manager) throws RemoteException {
-		UserRegistration stub = (UserRegistration) UnicastRemoteObject.exportObject(user_manager, 0);
+	private static void initRegistration(Registry r) throws RemoteException {
+		UserRegistration stub = (UserRegistration) UnicastRemoteObject.exportObject(UserManager.get(), 0);
 		r.rebind(NetworkUtils.USER_REGISTRATION, stub);
 	}
 	
