@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import dev.leonardini.worth.data.CardInfo;
+import dev.leonardini.worth.data.CardLocation;
 import dev.leonardini.worth.server.data.Card.HistoryEntry;
 
 /**
@@ -241,13 +242,6 @@ public class Project implements Serializable {
 	public synchronized List<HistoryEntry> getCardHistory(String cardName) throws Exception {
 		String fileName = Card.toFileName(cardName);
 		return locationToList(getCardLocation(cardName)).get(fileName).getHistory();
-	}
-	
-	public enum CardLocation {
-		TODO,
-		IN_PROGRESS,
-		TO_BE_REVISED,
-		DONE
 	}
 	
 	public static class InvalidCardException extends Exception {

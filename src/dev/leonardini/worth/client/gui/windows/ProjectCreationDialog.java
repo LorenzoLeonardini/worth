@@ -98,8 +98,7 @@ public class ProjectCreationDialog extends JDialog {
 		if(projectName.trim().length() == 0) return;
 		
 		setContentPane(loadingPanel);
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
@@ -110,8 +109,7 @@ public class ProjectCreationDialog extends JDialog {
 				errorMessage.setText(ClientAPI.get().getMessage());
 				errorMessage.setVisible(true);
 				setContentPane(mainPanel);
-				invalidate();
-				validate();
+				revalidate();
 				repaint();
 			}
 		}).start();

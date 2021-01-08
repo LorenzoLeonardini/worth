@@ -140,6 +140,7 @@ public class UserManager extends RemoteServer implements UserRegistration {
 	}
 	
 	public void logout(String username) {
+		Logger.Log("LOGGING OUT " + username);
 		if(username == null) return;
 		updateUserStatus(username, false);
 		Logger.Log(username + " logged out");

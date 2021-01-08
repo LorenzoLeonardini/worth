@@ -98,8 +98,7 @@ public class CardCreationDialog extends JDialog {
 			return;
 		
 		setContentPane(loadingPanel);
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
@@ -109,8 +108,7 @@ public class CardCreationDialog extends JDialog {
 				errorMessage.setText(ClientAPI.get().getMessage());
 				errorMessage.setVisible(true);
 				setContentPane(mainPanel);
-				invalidate();
-				validate();
+				revalidate();
 				repaint();
 			}
 		}).start();

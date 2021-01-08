@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Set;
 
 import dev.leonardini.worth.data.CardInfo;
+import dev.leonardini.worth.data.CardLocation;
 import dev.leonardini.worth.networking.NetworkUtils;
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.WorthBuffer;
 import dev.leonardini.worth.server.data.Card.HistoryEntry;
 import dev.leonardini.worth.server.data.Project;
-import dev.leonardini.worth.server.data.Project.CardLocation;
 
 /**
  * Server TCP is the main server thread, managing user TCP connections and handling
@@ -210,6 +210,7 @@ public class ServerTCP extends Thread {
 			String projectName = session.buffer.getString().trim();
 			String user = session.buffer.getString().trim();
 			try {
+				UserManager.get().checkExistance(user);
 				ProjectDB.addMember(projectName, user);
 				out.putBoolean(true);
 				Logger.Log(session.username + " added " + user + " to the project '" + projectName + "'");

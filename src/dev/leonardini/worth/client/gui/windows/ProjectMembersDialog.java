@@ -112,8 +112,7 @@ public class ProjectMembersDialog extends JDialog {
 		y_position += PropicManager.SIZE + 5;
 		panel.add(u);
 		
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 		
 		if(panel.getParent() != null)
@@ -132,8 +131,7 @@ public class ProjectMembersDialog extends JDialog {
 			return;
 		
 		scrollPane.setViewportView(loadingPanel);
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
@@ -144,8 +142,7 @@ public class ProjectMembersDialog extends JDialog {
 				errorMessage.setVisible(true);
 			}
 			scrollPane.setViewportView(panel);
-			invalidate();
-			validate();
+			revalidate();
 			repaint();
 		}).start();
 	}

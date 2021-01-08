@@ -10,7 +10,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SpringLayout;
 
-import dev.leonardini.worth.server.data.Project.CardLocation;
+import dev.leonardini.worth.data.CardLocation;
 
 /**
  * This component represents a column of cards in the project view
@@ -70,8 +70,7 @@ public class CardColumn extends JPanel {
 		}
 		setPreferredSize(new Dimension(titleLabel.getPreferredSize().width, h));
 		
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 	}
 	

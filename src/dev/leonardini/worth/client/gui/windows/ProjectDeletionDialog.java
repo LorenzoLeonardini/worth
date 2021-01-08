@@ -105,8 +105,7 @@ public class ProjectDeletionDialog extends JDialog {
 			return;
 		
 		setContentPane(loadingPanel);
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 		new Thread(() -> {
 			errorMessage.setVisible(false);
@@ -117,8 +116,7 @@ public class ProjectDeletionDialog extends JDialog {
 				errorMessage.setText("<html><body style='text-align: center'>" + ClientAPI.get().getMessage() + "</body></html>");
 				errorMessage.setVisible(true);
 				setContentPane(panel);
-				invalidate();
-				validate();
+				revalidate();
 				repaint();
 			}
 		}).start();

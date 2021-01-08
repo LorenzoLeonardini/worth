@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 
 import dev.leonardini.worth.data.CardInfo;
+import dev.leonardini.worth.data.CardLocation;
 import dev.leonardini.worth.server.data.Card;
 import dev.leonardini.worth.server.data.Card.HistoryEntry;
 import dev.leonardini.worth.server.data.Project;
-import dev.leonardini.worth.server.data.Project.CardLocation;
 
 /**
  * ProjectDB is an abstract class for the management of all the projects and the project file

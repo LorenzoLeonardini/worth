@@ -193,8 +193,7 @@ public class LoginScreen extends JFrame {
 	 */
 	private void switchToMain() {
 		this.setContentPane(mainPanel);
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 	}
 	
@@ -203,8 +202,7 @@ public class LoginScreen extends JFrame {
 	 */
 	private void switchToLoading() {
 		this.setContentPane(loadingPanel);
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 	}
 

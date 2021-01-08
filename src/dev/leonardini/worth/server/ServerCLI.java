@@ -18,7 +18,7 @@ public class ServerCLI extends Thread {
 	protected ServerCLI(ServerTCP serverTCP) {
 		add("help", "get a list of commands", () -> {
 			for(Command c : commands.values())
-				System.out.println(c.command + "\t\t\t" + c.description);
+				System.out.println(c.command + c.tabs + c.description);
 			System.out.println();
 		});
 		
@@ -100,11 +100,16 @@ public class ServerCLI extends Thread {
 		protected final String command;
 		protected final String description;
 		protected final Runnable exec;
+		protected final String tabs;
 		
 		protected Command(String command, String description, Runnable exec) {
 			this.command = command;
 			this.description = description;
 			this.exec = exec;
+			String tabs = "";
+			for(int i = 0; i < 3 - Math.ceil(command.length() / 8); i++)
+				tabs += "\t";
+			this.tabs = tabs;
 		}
 	}
 	

@@ -18,7 +18,7 @@ import dev.leonardini.worth.client.gui.assets.GuiUtils;
 import dev.leonardini.worth.client.gui.components.CardLabel;
 import dev.leonardini.worth.client.gui.components.ChatMessage;
 import dev.leonardini.worth.data.CardInfo;
-import dev.leonardini.worth.server.data.Project.CardLocation;
+import dev.leonardini.worth.data.CardLocation;
 
 /**
  * Component representing the chat panel on the right.
@@ -154,8 +154,7 @@ public class ChatPanel extends JPanel implements ReceiveChatCallback {
 		
 		scrollable.getVerticalScrollBar().setValue(scrollable.getVerticalScrollBar().getMaximum());
 		
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 	}
 	

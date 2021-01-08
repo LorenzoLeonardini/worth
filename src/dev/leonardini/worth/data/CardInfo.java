@@ -1,7 +1,5 @@
 package dev.leonardini.worth.data;
 
-import dev.leonardini.worth.server.data.Project.CardLocation;
-
 /**
  * Container for Card information: name, description, current list
  */

@@ -19,6 +19,7 @@ import java.util.Set;
 import dev.leonardini.worth.client.gui.assets.PropicManager;
 import dev.leonardini.worth.client.networking.UsersChangeUpdater;
 import dev.leonardini.worth.data.CardInfo;
+import dev.leonardini.worth.data.CardLocation;
 import dev.leonardini.worth.networking.ChatFallbackReceiver;
 import dev.leonardini.worth.networking.ChatFallbackRegistration;
 import dev.leonardini.worth.networking.NetworkUtils;
@@ -26,7 +27,6 @@ import dev.leonardini.worth.networking.NetworkUtils.Operation;
 import dev.leonardini.worth.networking.NotifyUsersChange;
 import dev.leonardini.worth.networking.UserRegistration;
 import dev.leonardini.worth.networking.UserRegistration.InvalidRegistrationException;
-import dev.leonardini.worth.server.data.Project.CardLocation;
 import dev.leonardini.worth.networking.UsersChangeNotification;
 import dev.leonardini.worth.networking.WorthBuffer;
 
@@ -45,7 +45,6 @@ public class ClientAPI implements UserUpdateCallback {
 	private UsersChangeNotification usersStub;
 	private ChatFallbackReceiver chatStub;
 	private ClientChatAPI chat;
-	private String username = null;
 	private Set<UserUpdateCallback> stubSet = new HashSet<UserUpdateCallback>();
 	
 	private Map<String, Boolean> users;
@@ -184,7 +183,6 @@ public class ClientAPI implements UserUpdateCallback {
 				}
 			}
 			// Setup variables and register RMI callbacks
-			this.username = username;
 			registerRMIs();
 			
 			// Discover which clients are available with multicast
@@ -200,11 +198,11 @@ public class ClientAPI implements UserUpdateCallback {
 	 */
 	private synchronized boolean logout() {
 		try {
+//			unregisterRMIs();
 			WorthBuffer buffer = new WorthBuffer();
 			buffer.putOperation(Operation.LOGOUT);
 			buffer.write(socketChannel);
 			socketChannel.close();
-			username = null;
 			return true;
 		} catch(IOException e) {
 			info_message = e.getMessage();
@@ -252,11 +250,13 @@ public class ClientAPI implements UserUpdateCallback {
 				NotifyUsersChange notification_service;
 				notification_service = (NotifyUsersChange) registry.lookup(NetworkUtils.USER_STATUS_NOTIFICATION);
 				notification_service.unregisterForCallback(usersStub);
+				usersStub = null;
 			}
 			
 			if(chatStub != null) {
 				ChatFallbackRegistration chat_service = (ChatFallbackRegistration) registry.lookup(NetworkUtils.CHAT_FALLBACK);
 				chat_service.unregisterForCallback(chatStub);
+				chatStub = null;
 			}
 			return true;
 		}
@@ -513,14 +513,15 @@ public class ClientAPI implements UserUpdateCallback {
 	 * @param message
 	 * @return outcome
 	 */
-	public boolean sendChatMsg(String projectName, String message) {
-		return chat.send(socketChannel, username, message);
+	public synchronized boolean sendChatMsg(String projectName, String message) {
+		return chat.send(socketChannel, message);
 	}
 
 	@Override
 	public void updateUserStatus(String username, boolean status) {
-		for(UserUpdateCallback callback : stubSet)
+		for(UserUpdateCallback callback : stubSet) {
 			callback.updateUserStatus(username, status);
+		}
 		
 		chat.updateUserStatus(username, status);
 	}

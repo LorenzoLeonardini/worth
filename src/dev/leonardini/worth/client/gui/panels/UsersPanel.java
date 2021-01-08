@@ -70,8 +70,7 @@ public class UsersPanel extends JPanel implements UserUpdateCallback {
 			y += PropicManager.SIZE + 5;
 		}
 		
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 		
 		if(getParent() != null)

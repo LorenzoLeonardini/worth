@@ -1,0 +1,229 @@
+\documentclass[a4paper,11pt] {article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage[italian]{babel}
+\usepackage{fancyhdr}
+\usepackage[textwidth=16cm, textheight=25cm]{geometry}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{realboxes}
+\usepackage{xpatch}
+\usepackage{dirtytalk}
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+\usepackage{hyperref}
+\usepackage{multicol}
+\usepackage{ragged2e}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=blue,
+}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.90,0.90,0.87}
+
+\lstdefinelanguage{none}{
+  identifierstyle=
+}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\makeatletter
+\xpretocmd\lstinline{\Colorbox{backcolour}\bgroup\appto\lst@DeInit{\egroup}}{}{}
+\makeatother
+
+\lstset{language=c,style=mystyle}
+
+\usepackage{minted}
+\usemintedstyle{friendly}
+
+\usepackage{amssymb}
+\newcommand{\numberset}{\mathbb}
+\newcommand{\N}{\numberset{N}}
+\newcommand{\R}{\numberset{R}}
+\newcommand{\Z}{\numberset{Z}}
+\newcommand{\Q}{\numberset{Q}}
+\newcommand{\C}{\numberset{C}}
+
+\let\oldemptyset\emptyset
+\let\emptyset\varnothing
+
+\title{\textbf{WORTH - Progetto Reti}}
+\author{Lorenzo Leonardini - matricola 598608}
+\date{}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{20pt}
+\fancyhead[R]{Lorenzo Leonardini - matricola 598608}
+\fancyhead[L]{WORTH - Progetto Reti}
+\fancyfoot[C]{\thepage}
+
+\usepackage{amsmath}
+\usepackage{cleveref}
+\usepackage[most]{tcolorbox}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduzione}
+
+Data la natura complessa del progetto, per poterne affrontare una chiara analisi in questa relazione, si è scelto di procedere partendo da descrizioni generali della struttura del codice, per poi muoversi gradualmente nello specifico delle implementazioni. In particolare, dopo aver fornito le necessarie indicazioni per la compilazione ed esecuzione, si procederà con la struttura generale dei file sorgente e dell'implementazione, presentando brevemente la gestione dei Thread e della concorrenza. Dopodiché si affronterà la comunicazione tra client e server, introducendo una descrizione ad alto livello del protocollo applicativo; per poi analizzare alcune parti dell'implementazione. Seguirà un'analisi per le scelte di modalità di I/O e si concluderà con un'analisi dettagliata dell'implementazione della chat, piuttosto ampliata rispetto a quella richiesta nel testo del progetto.
+
+\section*{Compilazione ed esecuzione}
+
+compilazione; esecuzione
+
+\section*{Struttura generale}
+
+Come anticipato nel paragrafo precedente, server e client sono stati entrambi sviluppati nello stesso progetto Eclipse. La ragione è puramente una questione di comodità, poiché le due ``entità'' condividono alcuni oggetti (in particolare per esempio la definizione degli oggetti remoti), quest'approccio è più rapido di creare una libreria apposita. Ciò nonostante, il Makefile allegato si occupa di rimuovere il codice specifico del client dal jar del server, e viceversa, in modo da alleggerire gli eseguibili finali.
+
+Si è scelto di implementare il client con un'interfaccia grafica, utilizzando la libreria Java Swing. Il server, invece, offre input e output da linea di comando per semplificare il debugging e i test del software.
+
+\subsection*{Il Client}
+
+La maggior parte del codice del client implementa l'interfaccia grafica. Questi file non verranno presi in esame, in quanto l'UI esula dagli scopi del laboratorio di reti, ma si è cercato di scrivere codice il più chiaro possibile, con opportuni commenti, in modo da semplificarne la lettura nel qual caso si fosse interessati ad alcune implementazioni.
+
+Dopo aver effettuato il login da una finestra apposita, l'utente interagisce con il programma tramite una schermata principale, che, come Trello, implementa il metodo Kanban. In questa finestra si trovano la lista degli utenti, la chat, e la visualizzazione del progetto corrente (o della lista dei progetti disponibili). Alcune interazioni specifiche e minori sono invece gestite con degli appositi popup.
+
+Si è scelto di implementare un'interfaccia il più intuitiva possibile, specialmente in rapporto alle interfacce di quelli che sono veri prodotti commerciali, come appunto Trello. Ci si sofferma in particolare sulla gestione delle card in un progetto: per avere maggiori informazioni riguardo una card, come la sua storia, basta cliccarci sopra; per spostare una card da una lista a un'altra, basta trascinarla nella colonna di destinazione\footnote{Come ho avuto modo di scoprire durante lo sviluppo, Swing non è la libreria più semplice con cui implementare il drag\&drop. La maggiore conseguenza di ciò è che le card possono essere trascinate solamente sulle colonne, in uno spazio libero. Se si trascina una card su un'altra card, l'operazione fallisce.\\Swing in generale non è una libreria molto ``elastica'': un altro piccolo ``bug grafico'' si verifica con l'invio di messaggi in chat: il calcolo della dimensione dei fumetti non è preciso, e la dimensione del pannello della chat è maggiore del necessario.}. Lo spostamento potrebbe apparire in ritardo, in quanto l'operazione viene prima confermata dal server.
+
+La ragione per cui è possibile sorvolare sull'implementazione della UI, è che il client è stato progettato in modo modulare: ``backend'' e ``frontend'' sono separati, e sarebbe possibile sostituire la GUI con una CLI, o addirittura permettere all'utente di scegliere tra le due, senza dover riadattare il codice attuale.
+Tutta l'interazione con il server avviene infatti mediante la classe \mintinline{Java}{ClientAPI}, che implementa le funzioni richieste nel testo del progetto, fornendo al client un livello di astrazione: lo sviluppo della UI può procedere ignorando completamente l'idea di server, interfacciandosi con \mintinline{Java}{ClientAPI} come se i dati fossero tutti disponibili localmente.
+
+Sempre attraverso \mintinline{Java}{ClientAPI}, l'interfaccia utente può registrare dei callback per la gestione di update come quelli riguardando lo stato degli utenti online. Notare che non si tratta di RMI, come detto l'UI non ha alcuna relazione con il server, si tratta di callback interni che vengono richiamati quando \mintinline{Java}{ClientAPI} riceve update tramite RMI.
+
+\mintinline{Java}{ClientAPI} è implementata con il pattern singleton, permettendo di accedere ai metodi in modalità ``statica'' e senza la necessità di passare un'istanza tra una classe e l'altra.
+
+Raggruppare tutta l'interazione del server in un'unica classe singleton, permette anche di semplificare la gestione della concorrenza e l'accesso alle variabili condivise: è sufficiente infatti proteggere i metodi di \mintinline{Java}{ClientAPI} con la keyword \mintinline{Java}{synchronized}. Differentemente da quanto si potrebbe pensare, però, la gestione della concorrenza non è solo necessaria per via di RMI. Poiché il main thread è ``occupato'' dal rendering di Swing, infatti, per evitare che la UI si blocchi ogni qual volta si faccia una richiesta al server, un Thread ``usa e getta'' viene creato ogni qual volta viene chiamata una funzione di \mintinline{Java}{ClientAPI}:
+
+\begin{minted}[tabsize=4]{Java}
+public void refresh() {
+	setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+	new Thread(() -> {
+		// ...
+		projects.clear();
+		List<String> prs = ClientAPI.get().listProjects();
+		// ...
+		updateUI();
+	}).start();
+}
+\end{minted}
+Si potrebbe contestare il fatto che venga creato un nuovo Thread ogni qual volta si voglia interpellare il server, tuttavia in questo caso si è scelto di preferire la soluzione più semplice, rafforzata dal fatto che l'overhead di creazione e distruzione di un singolo thread sia irrilevante nel contesto di interazione con l'utente. L'alternativa di creare una situazione di thread produttore/consumatore, piuttosto che una thread pool, non avrebbe infatti portato a nessun tipo di vantaggio e avrebbe anzi solamente complicato l'implementazione.
+
+\subsection*{Il Server}
+
+Anche il server è costituito da diversi moduli che operano assieme: \mintinline{Java}{ServerTCP} si occupa di gestire le comunicazioni sulla connessione TCP, \mintinline{Java}{ServerCLI} si occupa di gestire l'I/O con l'utente tramite linea di comando, \mintinline{Java}{ServerChat} si occupa di gestire le comunicazioni via chat e il fallback via RMI (di questo si discuterà ampiamente nell'ultima sezione). Ognuno di questi tre moduli ha un Thread associato.
+
+Vi sono poi tre singleton aggiuntivi e una classe astratta per la gestione di alcuni moduli aggiuntivi e/o database: \mintinline{Java}{UserManager} per la gestione degli utenti, \mintinline{Java}{ProjectDB} per la gestione dei progetti, \mintinline{Java}{Logger} per la stampa e il salvataggio di alcune informazioni di debug, \mintinline{Java}{RMIServer} per l'inizializzazione di RMI.
+
+È indubbio che la gestione della concorrenza sia più complessa per il server che per il client. Per semplificarne una parte, la comunicazione TCP viene eseguita su un singolo thread, sfruttando il multiplexing di canali tramite NIO. In generale, anche in questo caso i dati vengono protetti tramite l'utilizzo di blocchi \mintinline{Java}{synchronized}, con l'accortezza che, nel tentativo di migliorare le prestazioni, in questo caso non vengono bloccati oggetti interi (usando la keyword nella firma del metodo), ma solo i dati su cui si eseguono le operazioni, per il periodo di tempo più breve possibile.
+
+\section*{Protocollo TCP}
+
+La connessione TCP con cui client e server comunicano è una connessione persistente, alla quale il server associa una sessione che identifica l'utente finché questi non si disconnette. Ogni singola comunicazione viene iniziata dal client, il server elabora la richiesta e trasmette la risposta al client, che riporta il risultato all'utente.
+
+\subsection*{Descrizione}
+
+Nella colonna di sinistra si mostra il formato delle richieste, mentre nella colonna di destra si mostrano i due formati possibili per le risposte:
+
+\begin{multicols}{2}
+	\begin{table}[H]
+		\center
+		\begin{tabular}{|l|l|}
+			\hline
+			\mintinline{Java}{op} & \mintinline{Java}{[data...]} \\ \hline
+		\end{tabular}
+	\end{table}
+
+	\columnbreak
+
+	\begin{table}[H]
+		\center
+		\begin{tabular}{|l|l|l|}
+			\hline
+			\mintinline{Java}{op} & \mintinline{Java}{false} & \mintinline{Java}{"error message"} \\ \hline
+		\end{tabular}
+		\\~\\
+		\begin{tabular}{|l|l|l|}
+			\hline
+			\mintinline{Java}{op} & \mintinline{Java}{true} & \mintinline{Java}{[data...]} \\ \hline
+		\end{tabular}
+	\end{table}
+\end{multicols}
+
+\mintinline{Java}{op} è un codice che identifica l'operazione richiesta, definito come \mintinline{Java}{enum Operation} nella classe \mintinline{Java}{NetworkUtils}.
+I dati aggiuntivi (identificati da \mintinline{Java}{[data...]} nello schema sopra) non hanno un vero e proprio formato, e di conseguenza client e server devono accordarsi per scriverli e leggerli esattamente nello stesso modo.
+
+Seguono alcuni esempi di comunicazione tra client e server:
+
+\begin{table}[H]
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\mintinline{Java}{LOGIN} & \mintinline{Java}{"username"} & \mintinline{Java}{"password"} \\ \hline
+	\end{tabular}
+	\begin{flushright}
+	\begin{tabular}{|l|l|l|}
+		\hline
+		\mintinline{Java}{LOGIN} & \mintinline{Java}{false} & \mintinline{Java}{"Username o password errati"} \\ \hline
+	\end{tabular}
+	\end{flushright}
+	~\\
+	\begin{tabular}{|l|}
+		\hline
+		\mintinline{Java}{LIST_PROJECTS} \\ \hline
+	\end{tabular}
+	\begin{flushright}
+	\begin{tabular}{|l|l|l|l|l|}
+		\hline
+		\mintinline{Java}{LIST_PROJECTS} & \mintinline{Java}{true} & \mintinline{Java}{2} & \mintinline{Java}{"Progetto prova"} & \mintinline{Java}{"Progetto 2"} \\ \hline
+	\end{tabular}
+	\end{flushright}
+\end{table}
+
+\subsection*{Implementazione client}
+
+spiegazione rapida implementazione helpers e funzioni
+
+\subsection*{Implementazione server}
+
+spiegazione rapida handlers
+
+\section*{IO}
+
+WorthBuffer; scelta NIO; scelta Serializzazione; scelta serializzazione manuale utenti
+
+\section*{Chat, Multicast, RMI}
+
+D:
+
+\end{document}

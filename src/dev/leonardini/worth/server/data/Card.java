@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import dev.leonardini.worth.server.data.Project.CardLocation;
+import dev.leonardini.worth.data.CardLocation;
 
 /**
  * A card object in the server database. Contains general information about the

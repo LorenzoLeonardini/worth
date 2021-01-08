@@ -12,5 +12,6 @@ Link testo esame: [PDF](https://elearning.di.unipi.it/mod/assign/view.php?id=976
 - [x] handle empty inputs (avoid sending them to the server)
 - [ ] write report
 - [ ] consider proper testing
-- [ ] chat
+- [x] chat
 - [ ] autosave dbs
+- [ ] makefile

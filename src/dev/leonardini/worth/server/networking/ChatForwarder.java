@@ -5,9 +5,9 @@ import java.rmi.server.RemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.leonardini.worth.data.CardLocation;
 import dev.leonardini.worth.networking.ChatFallbackReceiver;
 import dev.leonardini.worth.networking.ChatFallbackRegistration;
-import dev.leonardini.worth.server.data.Project.CardLocation;
 
 /**
  * This class implements the ChatFallbackRegistration interface to manage chat messages

@@ -41,8 +41,7 @@ public class UsersPanelElement extends JPanel {
 	 */
 	public void updatePic() {
 		propic.setIcon(PropicManager.get(username).getIcon());
-		invalidate();
-		validate();
+		revalidate();
 		repaint();
 	}
 			

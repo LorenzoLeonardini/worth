@@ -1,6 +1,6 @@
 package dev.leonardini.worth.client;
 
-import dev.leonardini.worth.server.data.Project.CardLocation;
+import dev.leonardini.worth.data.CardLocation;
 
 /**
  * This is a callback used to listen to chat messages.

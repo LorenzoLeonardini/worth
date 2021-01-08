@@ -15,15 +15,23 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
+import dev.leonardini.worth.data.CardLocation;
 import dev.leonardini.worth.networking.ChatFallbackReceiver;
 import dev.leonardini.worth.networking.NetworkUtils;
 import dev.leonardini.worth.networking.NetworkUtils.Operation;
-import dev.leonardini.worth.server.data.Project.CardLocation;
 import dev.leonardini.worth.networking.WorthBuffer;
 
+/**
+ * This class manages chat communication with other users and the server.
+ * The main messaging "system" is via UDP Multicast, but this object takes care of
+ * a discovering system to check if every user is in fact reachable with Multicast
+ * (maybe they are not on the same network or a firewall is blocking that), in that
+ * case chat messages are forwarded from the server via RMI.
+ */
 public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver, Runnable {
 
 	private static final long serialVersionUID = 2419155737431494779L;
@@ -40,7 +48,7 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 	private Set<String> reachableUsers = new HashSet<String>();
 	private Set<String> onlineUsers = new HashSet<String>();
 	
-	public ClientChatAPI() {
+	protected ClientChatAPI() {
 		try {
 			socket = new MulticastSocket(NetworkUtils.MULTICAST_PORT);
 			InetAddress ia = InetAddress.getByName(NetworkUtils.MULTICAST_ADDRESS);
@@ -54,6 +62,9 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 	}
 	
 	@Override
+	/**
+	 * Listen to the multicast socket and manage incoming messages
+	 */
 	public void run() {
 		WorthBuffer buffer = new WorthBuffer(65535); // overkill, but better safe than sorry
 		while(running) {
@@ -65,26 +76,30 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 				
 				NetworkUtils.ChatOperation op = NetworkUtils.ChatOperation.values()[buffer.getInt()];
 				if(op == NetworkUtils.ChatOperation.MESSAGE) {
+					// This is a standard chat message
 					long timestamp = buffer.getLong();
 					String forProject = buffer.getString();
-					synchronized (this) {
-						String from = buffer.getString();
-						String message = buffer.getString();
-						receiveMessage(timestamp, forProject, from, message);
-					}
+					String from = buffer.getString();
+					String message = buffer.getString();
+					
+					receiveMessage(timestamp, forProject, from, message);
 				} else if(op == NetworkUtils.ChatOperation.SERVER) {
+					// This is a system message from the server
 					long timestamp = buffer.getLong();
 					String forProject = buffer.getString();
-					synchronized (this) {
-						String cardName = buffer.getString();
-						String user = buffer.getString();
-						CardLocation from = CardLocation.values()[buffer.getInt()];
-						CardLocation to = CardLocation.values()[buffer.getInt()];
-						receiveSystem(timestamp, forProject, cardName, user, from, to);
-					}
+					String cardName = buffer.getString();
+					String user = buffer.getString();
+					CardLocation from = CardLocation.values()[buffer.getInt()];
+					CardLocation to = CardLocation.values()[buffer.getInt()];
+					
+					receiveSystem(timestamp, forProject, cardName, user, from, to);
 				} else if(op == NetworkUtils.ChatOperation.MULTICAST_DISCOVERY) {
+					// This is a discovery message
 					if(username == null) continue;
 					
+					// Cleanup old discovery queries
+					// This allows both not to waste memory, speed up searches
+					// and minimize the risk of random collisions
 					long now = System.currentTimeMillis();
 					for(int id : discoveryQueries.keySet()) {
 						if(now - discoveryQueries.get(id) > 5 * 60 * 1000) {
@@ -98,8 +113,8 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 					reachableUsers.add(user);
 					System.out.println("new user reachable (" + reachableUsers.size() + "): " + user);
 					
+					// If this is a new discovery, tell others I'm reachable
 					if(discoveryQueries.containsKey(id)) continue;
-					discoveryQueries.put(id, now);
 					
 					multicastDiscovery(id);
 				}
@@ -111,48 +126,77 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 		}
 	}
 	
-	public synchronized boolean send(SocketChannel socketChannel, String username, String message) {
-		if(reachableUsers.size() < onlineUsers.size()) {
-			System.out.println("There are users which are not reachable via multicast");
-			System.out.println("REACHABLE:");
-			for(String u : reachableUsers)
-				System.out.println("\t" + u);
-			System.out.println("ONLINE:");
-			for(String u : onlineUsers)
-				System.out.println("\t" + u);
-			sendServer(socketChannel, username, message);
-		} else {
-			sendMulticast(username, message);
+	/**
+	 * Send a user message on the active chat.
+	 * 
+	 * @param socketChannel this is the socketchannel used to communicate with the server.
+	 * 			it is used as a fallback method of sending messages to users not reachable via UDP
+	 * @param message
+	 * @return outcome
+	 */
+	protected boolean send(SocketChannel socketChannel, String message) {
+		boolean outcome = true, shouldSendServer;
+		
+		long now = System.currentTimeMillis();
+		
+		synchronized (this) {
+			if(username == null) {
+				return false;
+			}
+			
+			// Always send with UDP multicast
+			outcome &= sendMulticast(message, now);
+			shouldSendServer = reachableUsers.size() < onlineUsers.size();
 		}
-		return true;
+		
+		if(shouldSendServer) {
+			outcome &= sendServer(socketChannel, message, now);
+		}
+		
+		// No real reason to fail this
+		return outcome;
 	}
 	
-	private void sendServer(SocketChannel socketChannel, String username, String message) {
+	/**
+	 * Send a chat message to server TCP connection
+	 * 
+	 * @param socketChannel
+	 * @param message
+	 * @return outcome
+	 */
+	private boolean sendServer(SocketChannel socketChannel, String message, long now) {
 		if(socketChannel == null) {
-			return;
+			return false;
 		}
 		
 		ServerCommunication comm = new ServerCommunication(Operation.CHAT, socketChannel);
 		WorthBuffer buffer = comm.getBuffer();
 		buffer.putInt(NetworkUtils.ChatOperation.MESSAGE.ordinal());
-		buffer.putLong(System.currentTimeMillis());
+		buffer.putLong(now);
 		synchronized(this) {
 			buffer.putString(project);
+			buffer.putString(username);
 		}
-		buffer.putString(username);
 		buffer.putString(message);
 		
 		if(!comm.send()) {
 			System.err.println(comm.getErrorMessage());
+			return false;
 		}
+		return true;
 	}
 	
-	private synchronized void sendMulticast(String username, String message) {
+	/**
+	 * Send chat message directly to all the other users via UDP Multicast 
+	 * @param message
+	 * @return outcome
+	 */
+	private synchronized boolean sendMulticast(String message, long now) {
 		try {
 			InetAddress ia = InetAddress.getByName(NetworkUtils.MULTICAST_ADDRESS);
 			WorthBuffer buffer = new WorthBuffer();
 			buffer.putInt(NetworkUtils.ChatOperation.MESSAGE.ordinal());
-			buffer.putLong(System.currentTimeMillis());
+			buffer.putLong(now);
 			buffer.putString(project);
 			buffer.putString(username);
 			buffer.putString(message);
@@ -164,18 +208,31 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 			ms.close();
 		} catch(Exception e) {
 			e.printStackTrace();
+			return false;
 		}
+		return true;
 	}
 	
+	/**
+	 * Initiate muticast discovery. It is mandatory that this method is called after logging in
+	 * and before sending any kind of message
+	 * 
+	 * @param username
+	 * @param users
+	 */
 	public synchronized void multicastDiscovery(String username, Map<String, Boolean> users) {
-		for(String u : users.keySet())
-			if(users.get(u))
-				onlineUsers.add(u);
+		for(Entry<String, Boolean> u : users.entrySet())
+			if(u.getValue())
+				onlineUsers.add(u.getKey());
 		this.username = username;
 		Random r = new Random();
 		multicastDiscovery(r.nextInt());
 	}
 	
+	/**
+	 * Send a multicast message for discovery reasons with my username
+	 * @param id the id of the interested discovery "query"
+	 */
 	private synchronized void multicastDiscovery(int id) {
 		discoveryQueries.put(id, System.currentTimeMillis());
 		try {
@@ -195,32 +252,57 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 		}
 	}
 	
-	public synchronized boolean read(String project, ReceiveChatCallback callback) {
+	/**
+	 * Initiate chat read callback
+	 * @param project
+	 * @param callback
+	 * @return
+	 */
+	protected synchronized boolean read(String project, ReceiveChatCallback callback) {
 		this.callback = callback;
 		this.project = project;
 		return true;
 	}
 	
-	public synchronized boolean stop() {
+	/**
+	 * Stop listening to chat messages
+	 * @return
+	 */
+	protected synchronized boolean stop() {
 		this.callback = null;
 		this.project = null;
 		messagesHash.clear();
 		return true;
 	}
 	
-	public synchronized void cleanUp() {
+	/**
+	 * Stop this thread
+	 */
+	protected synchronized void cleanUp() {
 		socket.close();
 		running = false;
 	}
 	
+	/**
+	 * Calculate message hash for a user message. Message hash is used to avoid receiving
+	 * multiple times the same message
+	 */
 	private String messageHash(long timestamp, String project, String username, String message) {
 		return messageHash(timestamp + project + username + message);
 	}
 	
+	/**
+	 * Calculate message hash for a system message. Message hash is used to avoid receiving
+	 * multiple times the same message
+	 */
 	private String messageHash(long timestamp, String project, String card, String username, CardLocation from, CardLocation to) {
 		return messageHash(timestamp + project + card + username + from + to);
 	}		
 	
+	/**
+	 * Calculate message hash for a message. Message hash is used to avoid receiving
+	 * multiple times the same message
+	 */
 	private String messageHash(String message) {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
@@ -239,7 +321,14 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 		return null;
 	}
 
-	public void updateUserStatus(String username, boolean status) {
+	/**
+	 * Keep online users and reachable users sets updated, in order to have
+	 * functioning server fallback
+	 * 
+	 * @param username
+	 * @param status
+	 */
+	protected void updateUserStatus(String username, boolean status) {
 		if(status) {
 			onlineUsers.add(username);
 		} else {
@@ -249,9 +338,17 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 	}
 
 	@Override
-	public void receiveMessage(long timestamp, String project, String username, String message) throws RemoteException {
+	/**
+	 * Interpret a user message. Can be called either after receving a message via multicast, or
+	 * remotely by the server via RMI
+	 */
+	public synchronized void receiveMessage(long timestamp, String project, String username, String message) throws RemoteException {
 		if(this.project == null) return;
 		if(!this.project.equals(project)) return;
+		message = message.trim();
+		username = username.trim();
+		project = project.trim();
+		
 		String hash = messageHash(timestamp, project, username, message);
 		if(messagesHash.contains(hash)) return;
 		messagesHash.add(hash);
@@ -260,9 +357,18 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 	}
 
 	@Override
-	public void receiveSystem(long timestamp, String project, String card, String user, CardLocation from, CardLocation to) throws RemoteException {
+	/**
+	 * Interpret a system message. Can be called either after receving a message via multicast, or
+	 * remotely by the server via RMI
+	 */
+	public synchronized void receiveSystem(long timestamp, String project, String card, String user, CardLocation from, CardLocation to) throws RemoteException {
 		if(this.project == null) return;
 		if(!this.project.equals(project)) return;
+		
+		card = card.trim();
+		username = username.trim();
+		project = project.trim();
+		
 		String hash = messageHash(timestamp, project, card, user, from, to);
 		if(messagesHash.contains(hash)) return;
 		messagesHash.add(hash);
