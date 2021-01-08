@@ -14,4 +14,4 @@ Link testo esame: [PDF](https://elearning.di.unipi.it/mod/assign/view.php?id=976
 - [ ] consider proper testing
 - [x] chat
 - [ ] autosave dbs
-- [ ] makefile
+- [x] makefile

@@ -101,7 +101,12 @@ Data la natura complessa del progetto, per poterne affrontare una chiara analisi
 
 \section*{Compilazione ed esecuzione}
 
-compilazione; esecuzione
+Il progetto è stato realizzato in Eclipse, i file nell'archivio consegnato sono il contenuto della cartella \mintinline{Java}{src}. Client e Server sono entrambi nello stesso progetto. La versione di Java utilizzata è Java 8. Si può compilare ed eseguire il codice sia con un'IDE, sia da terminale con \mintinline{Java}{make}.
+
+Se si sceglie di importare il progetto in un'IDE, i file contenenti il metodo main sono \texttt{dev.leonardini.worth.client.ClientMain} e \texttt{dev.leonardini.worth.server.ServerMain}. Notare come il server ha bisogno della definizione di alcuni argomenti (su Eclipse \textit{Run $\to$ Run Configurations...}).
+
+Si consiglia tuttavia di compilare ed eseguire il progetto da terminale. Per la compilazione basta invocare il comando \mintinline{bash}{make}, o con il target di default \mintinline{bash}{make all}. Make si occupa di compilare i file class e di creare due jar eseguibili, \texttt{ClientWORTH.jar} e \texttt{ServerWORTH.jar}. Per l'esecuzione del client si può utilizzare il comando \mintinline{bash}{java -jar ClientWORTH.jar} oppure, poiché non vi è bisogno di un terminale, si può eseguire direttamente da file manager. Il server invece necessita di essere eseguito con il comando \mintinline{bash}{java -jar ServerWORTH.jar RMIhost}, specificando l'argomento \texttt{RMIHost}, che coincide con l'IP del server utilizzato dai client per la connessione. Il server utilizzerà questo valore per impostare la proprietà \texttt{java.rmi.server.hostname}.\\
+Maggiori discussioni su RMI e hostname sono presenti nel paragrafo sull'implementazione della chat.
 
 \section*{Struttura generale}
 
