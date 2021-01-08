@@ -10,8 +10,8 @@ Link testo esame: [PDF](https://elearning.di.unipi.it/mod/assign/view.php?id=976
 - [x] comments
 - [x] server command line
 - [x] handle empty inputs (avoid sending them to the server)
-- [ ] write report
+- [x] write report
 - [ ] consider proper testing
 - [x] chat
-- [ ] autosave dbs
+- [x] autosave dbs
 - [x] makefile

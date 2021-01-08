@@ -34,6 +34,7 @@ public class ServerTCP extends Thread {
 	private boolean running = true;
 
 	protected ServerTCP() {
+		super("ServerTCP thread");
 		handler = new ServerHandlerManager();
 		registerHandlers();
 		
@@ -60,7 +61,7 @@ public class ServerTCP extends Thread {
 			e.printStackTrace();
 		}
 		UserManager.get().saveToFile();
-		ProjectDB.saveProjectsFile("projectdb");
+		ProjectDB.saveProjectsFile();
 	}
 	
 	@Override

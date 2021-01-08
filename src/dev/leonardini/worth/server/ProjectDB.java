@@ -23,6 +23,9 @@ import dev.leonardini.worth.server.data.Project;
 public abstract class ProjectDB {
 	
 	private static Map<String, Project> projects;
+	private static Thread autosaveThread;
+	private static String dbFileName;
+	private static boolean changes = false;
 
 	@SuppressWarnings("unchecked")
 	/**
@@ -34,6 +37,7 @@ public abstract class ProjectDB {
 	 */
 	protected synchronized static void loadProjectsFile(String filename) {
 		Logger.Log("Loading project db");
+		dbFileName = filename;
 		
 		try {
 			FileInputStream fis = new FileInputStream(filename);
@@ -41,23 +45,51 @@ public abstract class ProjectDB {
 			projects = (Map<String, Project>) in.readObject(); 
 			in.close();
 			fis.close();
-			return;
 		} catch (FileNotFoundException e) {
 			Logger.Log("No project db file. New file will be created");
+			projects = new HashMap<String, Project>();
 		} catch (Exception e) {
 			e.printStackTrace();
 			Logger.Error("Cannot read project db file");
+			projects = new HashMap<String, Project>();
 		}
-		projects = new HashMap<String, Project>();
+		
+		autosaveThread = new Thread(() -> {
+			boolean running = true;
+			while(running && !autosaveThread.isInterrupted()) {
+				try {
+					Thread.sleep(60000);
+					if(!changes) continue;
+					changes = false;
+				}
+				catch (InterruptedException e) {
+					running = false;
+				}
+				Logger.Log("Saving project db...");
+				saveProjectsFile(dbFileName);
+				Logger.Log("Project db saved");
+			}
+			Logger.Log("Autosave thread terminated");
+		}, "Autosave thread");
+		autosaveThread.start();
+	}
+	
+	protected static void saveProjectsFile() {
+		Logger.Log("Sending interrupt signal to autosave thread");
+		autosaveThread.interrupt();
+		try {
+			autosaveThread.join();
+		}
+		catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
 	 * Save the project database file, using Java internal serialization
 	 * process.
 	 */
-	protected synchronized static void saveProjectsFile(String filename) {
-		Logger.Log("Saving project db");
-		
+	private synchronized static void saveProjectsFile(String filename) {
 		try {
 			FileOutputStream fos = new FileOutputStream(filename);
 			ObjectOutputStream out = new ObjectOutputStream(fos);
@@ -80,6 +112,7 @@ public abstract class ProjectDB {
 		if(projects.containsKey(filename)) 
 			throw new Exception("Progetto già esistente");
 		projects.put(filename, new Project(name, user));
+		changes = true;
 	}
 	
 	private static Project getProject(String projectName) throws Exception {
@@ -134,6 +167,7 @@ public abstract class ProjectDB {
 	 */
 	protected synchronized static void addMember(String projectName, String user) throws Exception {
 		getProject(projectName).addMember(user);
+		changes = true;
 	}
 
 	/**
@@ -181,6 +215,7 @@ public abstract class ProjectDB {
 	 */
 	protected synchronized static void addCard(String projectName, String cardName, String cardDescription, String user) throws Exception {
 		getProject(projectName).addCard(new Card(cardName, cardDescription, user));
+		changes = true;
 	}
 
 	/**
@@ -195,6 +230,7 @@ public abstract class ProjectDB {
 	 */
 	protected synchronized static void moveCard(String projectName, String cardName, CardLocation src, CardLocation dst, String username) throws Exception {
 		getProject(projectName).moveCard(cardName, src, dst, username);
+		changes = true;
 	}
 
 	/**
@@ -206,6 +242,7 @@ public abstract class ProjectDB {
 	 */
 	protected synchronized static void deleteProject(String projectName, String username) throws Exception {
 		getProject(projectName).delete();
+		changes = true;
 	}
 	
 	/**

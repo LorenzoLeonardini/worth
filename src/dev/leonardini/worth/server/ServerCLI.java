@@ -16,6 +16,8 @@ public class ServerCLI extends Thread {
 	private Map<String, Command> commands = new HashMap<String, Command>();
 	
 	protected ServerCLI(ServerTCP serverTCP) {
+		super("ServerCLI Thread");
+		
 		add("help", "get a list of commands", () -> {
 			for(Command c : commands.values())
 				System.out.println(c.command + c.tabs + c.description);

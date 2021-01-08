@@ -58,7 +58,7 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 			e.printStackTrace();
 		}
 			
-		new Thread(this).start();
+		new Thread(this, "ClientChat thread").start();
 	}
 	
 	@Override
@@ -89,7 +89,8 @@ public class ClientChatAPI extends RemoteObject implements ChatFallbackReceiver,
 					String forProject = buffer.getString();
 					String cardName = buffer.getString();
 					String user = buffer.getString();
-					CardLocation from = CardLocation.values()[buffer.getInt()];
+					int fromInt = buffer.getInt();
+					CardLocation from = fromInt == -1 ? null : CardLocation.values()[fromInt];
 					CardLocation to = CardLocation.values()[buffer.getInt()];
 					
 					receiveSystem(timestamp, forProject, cardName, user, from, to);

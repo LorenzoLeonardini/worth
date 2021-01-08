@@ -79,7 +79,7 @@ public class ClientAPI implements UserUpdateCallback {
 				logout();
 			chat.cleanUp();
 			unregisterRMIs();
-		}));
+		}, "Shutdown thread"));
 		
 		// Initialize chat api
 		chat = new ClientChatAPI();
